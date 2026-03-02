@@ -1,0 +1,2889 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MenuOS — Admin</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f0ebe2;--sf:#fff;--bd:#e2d9cc;--tx:#1a1510;--mu:#8a7d6c;--ac:#1a1510;--gd:#b8883a;--gb:#fef5e0;--gn:#2d6a4f;--gnb:#d8f3dc;--rd:#c62828;--rdb:#ffebee;--bl:#1565c0;--blb:#e3f2fd;--r:11px;--sh:0 2px 8px rgba(0,0,0,.07)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;flex-direction:column;font-size:15px;-webkit-font-smoothing:antialiased}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--ac);height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 13px;flex-shrink:0;z-index:200}
+.brand{font-weight:800;font-size:17px;color:#fff;letter-spacing:.4px}
+.brand em{color:#d4a843;font-style:normal}
+.tbtn{padding:7px 13px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px}
+.tbtn-g{background:rgba(255,255,255,.13);color:#fff}
+.tbtn-gd{background:#d4a843;color:#fff}
+
+/* ── LAYOUT ── */
+.wrap{flex:1;overflow:hidden;display:flex}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:72px}
+
+/* ── BOTTOM NAV ── */
+.bnav{position:fixed;bottom:0;left:0;right:0;height:58px;background:var(--sf);border-top:1px solid var(--bd);display:flex;z-index:150;padding-bottom:env(safe-area-inset-bottom,0)}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;cursor:pointer;color:var(--mu);font-size:9px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;position:relative;-webkit-tap-highlight-color:transparent;padding:4px 2px}
+.bni.on{color:var(--ac)}
+.bni.on::after{content:'';position:absolute;bottom:0;left:22%;right:22%;height:2px;background:var(--ac);border-radius:2px 2px 0 0}
+.bni .ico{font-size:18px;line-height:1}
+.nbadge{position:absolute;top:3px;right:calc(50% - 17px);background:var(--gd);color:#fff;border-radius:99px;padding:0 5px;font-size:8px;font-weight:700;min-width:14px;text-align:center}
+
+/* ── PAGES ── */
+.pg{display:none}.pg.on{display:block}
+.ph{padding:14px 13px 8px;border-bottom:1px solid var(--bd);background:var(--sf);margin-bottom:9px;position:sticky;top:0;z-index:50}
+.ph h1{font-size:18px;font-weight:700}.ph p{font-size:11px;color:var(--mu);margin-top:1px}
+
+/* ── CARDS ── */
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:13px;margin:0 9px 9px;box-shadow:var(--sh)}
+.ctitle{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);margin-bottom:11px;display:flex;align-items:center;justify-content:space-between}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 9px 9px}
+.stat{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:11px;box-shadow:var(--sh)}
+.stat-n{font-size:26px;font-weight:800;line-height:1}
+.stat-l{font-size:10px;color:var(--mu);margin-top:2px}
+
+/* ── FORM ── */
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.field:last-child{margin-bottom:0}
+.field label{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mu)}
+.field input,.field select,.field textarea{padding:10px 11px;border:1.5px solid var(--bd);border-radius:8px;font-size:14px;color:var(--tx);background:var(--bg);outline:none;font-family:inherit;width:100%;-webkit-appearance:none;appearance:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--ac);background:#fff}
+
+/* ── CUSTOM CHECKBOXES FOR LANGUAGES ── */
+input[type="checkbox"][id^="lang"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid var(--bd);
+  border-radius: 4px;
+  background: var(--bg);
+  position: relative;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+input[type="checkbox"][id^="lang"]:hover {
+  border-color: var(--ac);
+}
+input[type="checkbox"][id^="lang"]:checked {
+  background: var(--ac);
+  border-color: var(--ac);
+}
+input[type="checkbox"][id^="lang"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+input[type="checkbox"][id^="lang"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+input[type="checkbox"][id^="lang"]:disabled:checked {
+  background: var(--mu);
+  border-color: var(--mu);
+}
+.field textarea{resize:vertical;min-height:64px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* ── BUTTONS ── */
+.btn{padding:10px 14px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent;font-family:inherit;transition:filter .12s}
+.btn:active{filter:brightness(.88)}
+.btn-p{background:var(--ac);color:#fff;width:100%}
+.btn-o{background:var(--sf);color:var(--tx);border:1.5px solid var(--bd);width:100%}
+.btn-gd{background:var(--gd);color:#fff}
+.btn-ok{background:var(--gnb);color:var(--gn);border:1px solid #b7e4c7}
+.btn-err{background:var(--rdb);color:var(--rd);border:1px solid #ffcdd2}
+.btn-sm{padding:6px 11px;font-size:12px;border-radius:7px;width:auto}
+
+/* ══════════════════════════════
+   FILE UPLOAD ZONES
+   ══════════════════════════════
+   KEY FIX: input[type=file] covers the ENTIRE zone
+   so it works on iOS Safari, Android Chrome, etc.
+   Never use onclick= wrappers that can fail on mobile.
+*/
+.upz{
+  position:relative;
+  border:2px dashed var(--bd);
+  border-radius:var(--r);
+  overflow:hidden;
+  background:var(--bg);
+  cursor:pointer;
+  transition:border-color .2s,background .2s;
+}
+.upz:active,.upz.drag{border-color:var(--gd);background:var(--gb)}
+/* Input fills the entire zone — critical for mobile */
+.upz > input[type=file]{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  opacity:0;cursor:pointer;
+  font-size:0;z-index:10;
+  /* prevent iOS zooming */
+  -webkit-appearance:none;
+}
+.upz-body{
+  padding:20px 14px;text-align:center;
+  pointer-events:none;position:relative;z-index:1;
+}
+.upz-ico{font-size:34px;margin-bottom:7px}
+.upz-main{font-size:14px;font-weight:700;color:var(--tx);margin-bottom:3px}
+.upz-sub{font-size:12px;color:var(--mu);line-height:1.4}
+.upz-sub b{color:var(--gd)}
+
+/* Preview image inside upload zone */
+.upz-prev{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  z-index:2;display:none;
+  pointer-events:none;
+}
+/* "Cambiar" overlay on hover/active */
+.upz-ov{
+  position:absolute;inset:0;z-index:5;
+  background:rgba(0,0,0,.38);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:13px;font-weight:700;
+  opacity:0;transition:.18s;pointer-events:none;
+}
+.upz:active .upz-ov{opacity:1}
+
+/* SQUARE variant for logo / product pic */
+.upz-sq{aspect-ratio:1/1;min-height:100px}
+
+/* ── DROP ZONE (import) — same pattern ── */
+.dropz{
+  position:relative;border:2px dashed var(--bd);
+  border-radius:var(--r);overflow:hidden;
+  background:var(--bg);transition:.2s;
+}
+.dropz.drag{border-color:var(--gd);background:var(--gb)}
+.dropz > input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0;z-index:10;-webkit-appearance:none}
+.dropz-body{padding:28px 16px;text-align:center;pointer-events:none;position:relative;z-index:1}
+
+/* ── IMPORT ── */
+.imp-st{display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.4}
+.ist-ok{background:var(--gnb);color:var(--gn);border:1px solid #b7e4c7;display:block}
+.ist-err{background:var(--rdb);color:var(--rd);border:1px solid #ffcdd2;display:block}
+.ist-load{background:var(--blb);color:var(--bl);border:1px solid #bbdefb;display:block}
+.pbar-w{height:4px;background:var(--bd);border-radius:99px;margin-top:6px;overflow:hidden;display:none}
+.pbar{height:100%;background:var(--gd);border-radius:99px;transition:width .3s}
+.ptw{overflow-x:auto;border-radius:8px;border:1px solid var(--bd);margin-top:10px}
+.pt{width:100%;border-collapse:collapse;font-size:12px;min-width:430px}
+.pt th{background:var(--ac);color:#fff;padding:6px 9px;text-align:left;font-size:11px;font-weight:600}
+.pt td{padding:6px 9px;border-bottom:1px solid var(--bd);white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis}
+.pt tr:last-child td{border-bottom:none}
+.pt tr:nth-child(even) td{background:var(--bg)}
+.cchip{padding:2px 7px;border-radius:99px;background:var(--gb);color:var(--gd);font-size:10px;font-weight:600}
+
+/* ── DESIGN ── */
+.dsec{margin:0 9px 11px}
+.dstitle{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);padding:2px 0 8px}
+.cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.citem{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.cswatch{width:100%;aspect-ratio:1;border-radius:9px;border:2px solid var(--bd);position:relative;transition:transform .1s}
+.cswatch:active{transform:scale(.93)}
+.cshow{position:absolute;inset:0;border-radius:7px}
+.clbl{font-size:9px;color:var(--mu);text-align:center;font-weight:600}
+.dgroup{margin-bottom:4px}
+.dglbl{font-size:10px;color:var(--mu);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px}
+.cgrid2{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.style-opts{display:flex;gap:6px;flex-wrap:wrap}
+.sopt{padding:7px 12px;border-radius:8px;border:1.5px solid var(--bd);background:var(--sf);color:var(--tx);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.sopt.on{background:var(--gd);color:#fff;border-color:var(--gd)}
+/* Color Picker Popup */
+.cpopup{display:none;position:fixed;z-index:9999;background:#1e1e1e;border-radius:14px;padding:14px;width:240px;box-shadow:0 8px 40px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.1)}
+.cpopup.open{display:block}
+.cp-field{width:100%;height:140px;border-radius:8px;position:relative;cursor:crosshair;margin-bottom:10px;overflow:hidden}
+.cp-field-inner{position:absolute;inset:0}
+.cp-cursor{position:absolute;width:14px;height:14px;border-radius:50%;border:2px solid #fff;transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 0 4px rgba(0,0,0,.5)}
+.cp-hue{width:100%;height:14px;border-radius:7px;cursor:pointer;position:relative;margin-bottom:10px;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+.cp-hue-thumb{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;border:2px solid #fff;transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 0 4px rgba(0,0,0,.5)}
+.cp-hex{display:flex;align-items:center;gap:8px}
+.cp-preview{width:32px;height:32px;border-radius:6px;flex-shrink:0;border:1px solid rgba(255,255,255,.15)}
+.cp-input{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;font-family:monospace;outline:none}
+.cp-input:focus{border-color:rgba(255,255,255,.3)}
+.cp-close{margin-top:10px;width:100%;padding:8px;background:var(--gd);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
+
+.fopts{display:flex;flex-direction:column;gap:6px}
+.fopt{padding:10px 12px;border-radius:9px;border:2px solid var(--bd);cursor:pointer;transition:all .15s;background:var(--sf);display:flex;align-items:center;justify-content:space-between}
+.fopt.on{border-color:var(--ac);background:var(--bg)}
+.fopt .fn{font-size:13px;font-weight:600}
+.fopt .fs{font-size:10px;color:var(--mu);margin-top:2px}
+.fopt .fck{width:16px;height:16px;border-radius:50%;background:var(--ac);color:#fff;font-size:10px;display:none;align-items:center;justify-content:center;flex-shrink:0}
+.fopt.on .fck{display:flex}
+
+.sw-wrap{display:flex;align-items:center;gap:10px}
+.sw-wrap input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:99px;background:var(--bd);outline:none}
+.sw-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--ac);cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.2)}
+.sw-val{font-size:13px;font-weight:700;min-width:36px;text-align:right;color:var(--ac)}
+
+.tscroll{display:flex;gap:8px;overflow-x:auto;padding:1px 0 5px;scrollbar-width:none}
+.tscroll::-webkit-scrollbar{display:none}
+.tcard{flex-shrink:0;width:64px;border-radius:10px;overflow:hidden;border:2px solid transparent;cursor:pointer;transition:border-color .15s;-webkit-tap-highlight-color:transparent}
+.tcard.on{border-color:var(--ac)}
+.tprev{height:36px;display:flex;align-items:center;justify-content:center;gap:3px}
+.tdot{width:7px;height:7px;border-radius:50%}
+.tname{font-size:9px;font-weight:700;padding:4px 3px;text-align:center;background:var(--sf)}
+
+.pprev{background:#111;border-radius:20px;overflow:hidden;border:3px solid #222;margin:0 9px 11px;height:185px;position:relative}
+.ppi{position:absolute;inset:0;overflow:hidden;display:flex;flex-direction:column}
+.pph{height:65px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:10px}
+.ppt{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.ppb{height:32px;display:flex;align-items:center;gap:5px;padding:0 9px}
+.ppp{height:20px;border-radius:99px;padding:0 9px;font-size:9px;display:flex;align-items:center;font-weight:600}
+.ppc{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:6px 9px;overflow:hidden}
+.ppcard{border-radius:7px;overflow:hidden}
+.ppimg{aspect-ratio:16/9;background:rgba(255,255,255,.06)}
+.ppbod{padding:4px 5px}
+.ppn{font-size:7px;font-weight:600}
+.ppp2{font-size:7px;margin-top:1px}
+
+.cpick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.copt{border:2px solid var(--bd);background:transparent;border-radius:9px;padding:10px 5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;-webkit-tap-highlight-color:transparent;transition:all .15s;font-family:inherit}
+.copt.on{border-color:var(--ac);background:rgba(0,0,0,.04)}
+.copt span{font-size:10px;font-weight:700;color:var(--tx)}
+
+/* ── PRODUCTS ── */
+.pitem{background:var(--sf);border:1px solid var(--bd);border-radius:10px;margin:0 9px 7px;display:flex;align-items:center;gap:9px;padding:9px 10px}
+/* THUMBNAIL — square, object-fit:cover guaranteed */
+.pthumb{
+  width:52px;height:52px;
+  border-radius:8px;overflow:hidden;
+  flex-shrink:0;background:var(--bg);
+  position:relative;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+}
+.pthumb img{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;  /* KEY: fills square without distortion */
+  object-position:center;
+  display:block;
+}
+.pinfo{flex:1;min-width:0}
+.pname{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pmeta{font-size:11px;color:var(--mu);margin-top:2px}
+.pvid{font-size:10px;color:var(--gd);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pacts{display:flex;gap:5px;flex-shrink:0}
+.ibtn{width:33px;height:33px;border-radius:8px;border:1px solid var(--bd);background:var(--sf);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;-webkit-tap-highlight-color:transparent}
+
+.srow{display:flex;gap:7px;padding:0 9px 8px;position:sticky;top:52px;background:var(--bg);z-index:40;padding-top:7px}
+.sinp{flex:1;padding:9px 11px;border:1.5px solid var(--bd);border-radius:8px;font-size:14px;background:var(--sf);outline:none;-webkit-appearance:none}
+.sinp:focus{border-color:var(--ac)}
+.ssel{padding:9px 8px;border:1.5px solid var(--bd);border-radius:8px;font-size:13px;background:var(--sf);outline:none;-webkit-appearance:none;cursor:pointer}
+.citem{background:var(--sf);border:1px solid var(--bd);border-radius:9px;display:flex;align-items:center;gap:8px;padding:10px 12px;margin-bottom:7px}
+.citem input{flex:1;border:none;background:none;font-size:14px;outline:none;color:var(--tx)}
+.dh{color:var(--mu);font-size:16px;cursor:grab;flex-shrink:0}
+
+/* ── QR ── */
+.qrgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px}
+.qri{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:10px;text-align:center}
+.qri img{width:86px;height:86px;display:block;margin:0 auto 5px}
+.qrl{font-size:12px;font-weight:700}.qru{font-size:10px;color:var(--mu);margin-top:2px}
+
+/* ── MODAL ── */
+.moverlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.52);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .2s}
+.moverlay.open{opacity:1;pointer-events:all}
+.msheet{width:100%;max-height:93dvh;background:var(--sf);border-radius:18px 18px 0 0;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);padding-bottom:env(safe-area-inset-bottom,0)}
+.moverlay.open .msheet{transform:translateY(0)}
+.msheet::-webkit-scrollbar{width:0}
+.mdrag{width:34px;height:4px;background:var(--bd);border-radius:99px;margin:10px auto 0}
+.mhdr{padding:10px 13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd)}
+.mtitle{font-size:16px;font-weight:700}
+.mclose{background:none;border:none;font-size:18px;cursor:pointer;color:var(--mu);padding:4px;line-height:1}
+.mbody{padding:13px}
+.mfoot{padding:10px 13px;border-top:1px solid var(--bd);display:flex;gap:7px}
+
+/* Product image upload in modal — 16:9 apaisada preview */
+.piup{
+  position:relative;
+  width:100%;aspect-ratio:16/9; /* apaisada, como en la tarjeta grilla */
+  border:2px dashed var(--bd);border-radius:9px;
+  overflow:hidden;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:11px;cursor:pointer;
+}
+/* fill entire piup with the input */
+.piup > input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0;z-index:10;-webkit-appearance:none}
+.piup-prev{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover; /* fills 16:9 without distortion */
+  object-position:center;
+  z-index:2;display:none;
+}
+.piup-hint{text-align:center;font-size:12px;color:var(--mu);pointer-events:none;z-index:1}
+.piup-hint .ico{font-size:28px;margin-bottom:4px}
+.piup-ov{position:absolute;inset:0;z-index:5;background:rgba(0,0,0,.36);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;opacity:0;transition:.18s;pointer-events:none}
+.piup:active .piup-ov{opacity:1}
+
+/* Video upload zone — 9:16 portrait */
+.viup{
+  position:relative;width:100%;aspect-ratio:9/16;
+  max-height:50vh;
+  border:2px dashed var(--bd);border-radius:9px;
+  overflow:hidden;background:#0a0a0a;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:11px;cursor:pointer;
+}
+.viup > input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0;z-index:10;-webkit-appearance:none}
+.viup-prev{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;display:none}
+.viup-hint{text-align:center;font-size:12px;color:var(--mu);pointer-events:none;z-index:1;padding:10px}
+.viup-hint .ico{font-size:30px;margin-bottom:5px}
+.viup-ov{position:absolute;inset:0;z-index:5;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;opacity:0;transition:.18s;pointer-events:none}
+.viup:active .viup-ov{opacity:1}
+.viup-bar{position:absolute;bottom:0;left:0;right:0;z-index:6;background:rgba(0,0,0,.6);padding:6px 10px;color:#fff;font-size:11px;display:none;gap:8px;align-items:center}
+.viup-bar.show{display:flex}
+.viup-fname{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.viup-del{background:none;border:none;color:rgba(255,255,255,.7);font-size:16px;cursor:pointer;padding:0;line-height:1;flex-shrink:0}
+
+/* Two-column upload layout */
+.upload-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:11px}
+.upload-col label{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mu);display:block;margin-bottom:5px}
+
+.tags-box{display:flex;flex-wrap:wrap;gap:5px;padding:8px 10px;border:1.5px solid var(--bd);border-radius:8px;background:var(--bg);min-height:40px;align-items:center;cursor:text}
+.tags-box:focus-within{border-color:var(--ac);background:#fff}
+.tchip{display:flex;align-items:center;gap:3px;background:var(--ac);color:#fff;padding:3px 8px;border-radius:99px;font-size:11px}
+.tchip button{background:none;border:none;color:#fff;cursor:pointer;font-size:13px;line-height:1;opacity:.75;padding:0}
+.tinp{border:none;background:none;outline:none;font-size:13px;min-width:80px;flex:1;font-family:inherit;color:var(--tx)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:calc(64px + env(safe-area-inset-bottom,0));left:9px;right:9px;background:var(--ac);color:#fff;padding:11px 14px;border-radius:10px;font-size:14px;font-weight:600;z-index:9999;transform:translateY(14px);opacity:0;transition:all .25s cubic-bezier(.32,.72,0,1);box-shadow:0 6px 20px rgba(0,0,0,.22);text-align:center;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+
+.info{background:var(--gb);border:1px solid #f5d79e;border-radius:8px;padding:9px 12px;font-size:12px;color:#7a4a00;line-height:1.6;margin-bottom:10px}
+.info-b{background:var(--blb);border-color:#bbdefb;color:#0d47a1}
+.sep{height:1px;background:var(--bd);margin:11px 0}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Menu<em>OS</em></div>
+  <div style="display:flex;gap:7px">
+    <button class="tbtn tbtn-g" onclick="previewMenu()">👁 Ver</button>
+    <button class="tbtn tbtn-gd" onclick="saveAll()">💾 Guardar</button>
+  </div>
+</div>
+
+<div class="wrap">
+<div class="main" id="main">
+
+<!-- ══ INICIO ══ -->
+<div class="pg on" id="pg-inicio">
+  <div class="ph"><h1>Inicio</h1><p>Estado de tu menú digital</p></div>
+
+  <!-- Banner primeros pasos -->
+  <div id="setupBanner" style="display:none;background:linear-gradient(135deg,rgba(212,168,67,.15),rgba(212,168,67,.05));border:1px solid rgba(212,168,67,.3);border-radius:14px;padding:16px;margin-bottom:12px">
+    <div style="font-size:13px;font-weight:700;color:var(--gd);margin-bottom:6px">👋 Primeros pasos</div>
+    <div style="font-size:12px;color:var(--mu);line-height:1.65;margin-bottom:12px">Para que tu menú funcione necesitás: <b style="color:var(--tx)">1.</b> Poné el nombre del restaurante en <b>Local</b>. <b style="color:var(--tx)">2.</b> Agregá productos en <b>Carta</b> o importá desde Excel. <b style="color:var(--tx)">3.</b> Guardá.</div>
+    <div style="display:flex;gap:7px">
+      <button class="btn btn-gd" style="flex:1;padding:10px 0;font-size:12px" onclick="goPage('local')">🏪 Configurar Local</button>
+      <button class="btn btn-o" style="flex:1;padding:10px 0;font-size:12px" onclick="goPage('carta')">📋 Ir a Carta</button>
+    </div>
+  </div>
+
+  <div class="stats" id="statsGrid"></div>
+  <div class="card">
+    <div class="ctitle">🚀 Comenzar</div>
+    <p style="font-size:12px;color:var(--mu);line-height:1.6;margin-bottom:11px">Importá tu carta desde Excel en <b>Importar</b>, o agregá productos manualmente en <b>Carta</b>. Personalizá diseño en <b>Diseño</b>.</p>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <a href="carta_template.xlsx" download class="btn btn-o">⬇️ Descargar plantilla Excel</a>
+      <button class="btn btn-gd" onclick="goPage('importar')">📥 Importar carta</button>
+      <button class="btn btn-o" onclick="previewMenu()">👁 Ver menú del cliente</button>
+    </div>
+  </div>
+  <div class="card"><div class="ctitle">🍽️ Últimos agregados</div><div id="recentList"></div></div>
+</div>
+
+<!-- ══ IMPORTAR ══ -->
+<div class="pg" id="pg-importar">
+  <div class="ph"><h1>Importar Carta</h1><p>Excel o CSV → menú listo automáticamente</p></div>
+  <div class="card">
+    <div class="info">
+      <b>Columnas obligatorias:</b> categoria · nombre · descripcion_corta · precio<br>
+      <b>Opcionales:</b> descripcion_larga · badge · tags (separados por coma) · archivo_video · url_imagen · disponible (sí/no)
+    </div>
+    <a href="carta_template.xlsx" download class="btn btn-o" style="margin-bottom:9px">⬇️ Plantilla .xlsx</a>
+
+    <div class="dropz" id="dropZone">
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.ods">
+      <div class="dropz-body">
+        <div style="font-size:40px;margin-bottom:8px">📊</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:3px">Tocá para subir</div>
+        <div style="font-size:12px;color:var(--mu)">o arrastrá aquí · <b>.xlsx · .xls · .csv</b></div>
+      </div>
+    </div>
+    <div class="imp-st" id="impSt"></div>
+    <div class="pbar-w" id="pbarW"><div class="pbar" id="pbar" style="width:0%"></div></div>
+  </div>
+
+  <div id="impPrev" style="display:none">
+    <div class="card">
+      <div class="ctitle">Vista previa</div>
+      <div id="impStats" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px"></div>
+      <div style="display:flex;gap:7px;margin-bottom:9px">
+        <button class="btn btn-err btn-sm" onclick="cancelImp()">✕ Cancelar</button>
+        <button class="btn btn-ok btn-sm" style="flex:1" onclick="applyImp()">✅ Aplicar importación</button>
+      </div>
+      <div class="ptw"><table class="pt" id="ptable"></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DISEÑO ══ -->
+<div class="pg" id="pg-diseno">
+  <div class="ph"><h1>Diseño</h1><p>Apariencia en tiempo real</p></div>
+
+  <div class="pprev">
+    <div class="ppi" id="ppi">
+      <div class="pph" id="pph"><div class="ppt" id="ppt">LA PARRILLA</div></div>
+      <div class="ppb" id="ppb">
+        <div class="ppp on" id="ppp1">Entradas</div>
+        <div class="ppp" style="opacity:.4;background:transparent;border:1px solid rgba(255,255,255,.2)">Parrilla</div>
+      </div>
+      <div class="ppc">
+        <div class="ppcard" id="ppc1"><div class="ppimg"></div><div class="ppbod"><div class="ppn" id="ppn1">Provoleta</div><div class="ppp2" id="ppp2a">$2.200</div></div></div>
+        <div class="ppcard" id="ppc2"><div class="ppimg"></div><div class="ppbod"><div class="ppn" id="ppn2">Chorizo</div><div class="ppp2" id="ppp2b">$1.800</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dsec"><div class="dstitle">Temas rápidos</div><div class="tscroll" id="tscroll"></div></div>
+
+  <!-- ── CARROUSEL BANNER ── -->
+  <div class="card">
+    <div class="ctitle">🎠 Carrousel del Banner</div>
+    <div class="info">Configurá imágenes o videos que rotan en el header principal. Máximo 5 slides.</div>
+    
+    <div class="field" style="margin-bottom:12px">
+      <label>⏱️ Velocidad de rotación</label>
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;font-weight:normal">
+          <input type="radio" name="carouselSpeed" value="2000" onchange="setCarouselInterval(2000)" style="accent-color:var(--ac)">
+          <span>2 seg</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;font-weight:normal">
+          <input type="radio" name="carouselSpeed" value="3000" onchange="setCarouselInterval(3000)" style="accent-color:var(--ac)" checked>
+          <span>3 seg</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;font-weight:normal">
+          <input type="radio" name="carouselSpeed" value="5000" onchange="setCarouselInterval(5000)" style="accent-color:var(--ac)">
+          <span>5 seg</span>
+        </label>
+      </div>
+    </div>
+
+    <div id="carouselSlides"></div>
+    
+    <button class="btn btn-p btn-sm" onclick="addCarouselSlide()" style="margin-top:12px">
+      + Agregar Slide
+    </button>
+  </div>
+
+  <!-- ── COLORES GENERALES ── -->
+  <div class="card">
+    <div class="ctitle">🎨 Colores generales</div>
+    <div class="dgroup">
+      <div class="dglbl">Fondo del menú</div>
+      <div class="cgrid2" id="cgridGeneral"></div>
+    </div>
+  </div>
+
+  <!-- ── BOTONES + ── -->
+  <div class="card">
+    <div class="ctitle">➕ Botón agregar producto</div>
+    <div class="dgroup">
+      <div class="dglbl">Colores</div>
+      <div class="cgrid2" id="cgridBtn"></div>
+    </div>
+    <div class="dgroup" style="margin-top:12px">
+      <div class="dglbl">Estilo de fondo</div>
+      <div class="style-opts" id="btnBgStyle">
+        <button class="sopt on" id="btnStyleSolid" onclick="onBtnStyle('solid')">Sólido</button>
+        <button class="sopt" id="btnStyleTransp" onclick="onBtnStyle('transparent')">Transparente</button>
+        <button class="sopt" id="btnStyleTrans" onclick="onBtnStyle('translucid')">Translúcido</button>
+      </div>
+    </div>
+    <div class="dgroup" style="margin-top:12px">
+      <div class="dglbl">Efecto</div>
+      <div class="style-opts" id="btnEffect">
+        <button class="sopt on" id="btnEffectFlat" onclick="onBtnEffect('flat')">Liso</button>
+        <button class="sopt" id="btnEffect3d" onclick="onBtnEffect('3d')">3D</button>
+      </div>
+    </div>
+    <div class="dgroup" style="margin-top:12px">
+      <div class="dglbl">Borde — grosor</div>
+      <div class="sw-wrap"><input type="range" id="btnBorderSlider" min="0" max="4" value="0" step="1" oninput="onBtnBorder(this.value)"><div class="sw-val" id="btnBorderVal">0px</div></div>
+    </div>
+  </div>
+
+  <!-- ── BOTONES CATEGORÍA ── -->
+  <div class="card">
+    <div class="ctitle">🗂️ Botones de categoría</div>
+    <div class="dgroup">
+      <div class="dglbl">Colores</div>
+      <div class="cgrid2" id="cgridCat"></div>
+    </div>
+    <div class="dgroup" style="margin-top:12px">
+      <div class="dglbl">Estilo de fondo</div>
+      <div class="style-opts">
+        <button class="sopt on" id="catStyleSolid" onclick="onCatStyle('solid')">Sólido</button>
+        <button class="sopt" id="catStyleTransp" onclick="onCatStyle('transparent')">Transparente</button>
+        <button class="sopt" id="catStyleTrans" onclick="onCatStyle('translucid')">Translúcido</button>
+      </div>
+    </div>
+    <div class="dgroup" style="margin-top:12px">
+      <div class="dglbl">Efecto</div>
+      <div class="style-opts">
+        <button class="sopt on" id="catEffectFlat" onclick="onCatEffect('flat')">Liso</button>
+        <button class="sopt" id="catEffect3d" onclick="onCatEffect('3d')">3D</button>
+      </div>
+    </div>
+    <div class="dgroup" style="margin-top:12px">
+      <div class="dglbl">Borde — grosor</div>
+      <div class="sw-wrap"><input type="range" id="catBorderSlider" min="0" max="4" value="1" step="1" oninput="onCatBorder(this.value)"><div class="sw-val" id="catBorderVal">1px</div></div>
+    </div>
+    <div class="dgroup" style="margin-top:12px">
+      <div class="dglbl">Tamaño del texto</div>
+      <div class="sw-wrap"><input type="range" id="catFontSlider" min="11" max="18" value="14" step="1" oninput="onCatFont(this.value)"><div class="sw-val" id="catFontVal">14px</div></div>
+    </div>
+  </div>
+
+  <!-- ── TARJETAS ── -->
+  <div class="card">
+    <div class="ctitle">📋 Tarjetas de productos</div>
+    <div class="dgroup">
+      <div class="dglbl">Colores</div>
+      <div class="cgrid2" id="cgridCard"></div>
+    </div>
+    <div class="dgroup" style="margin-top:12px">
+      <div class="dglbl">Redondeo tarjetas</div>
+      <div class="sw-wrap"><input type="range" id="rSlider" min="0" max="28" value="14" oninput="onRadius(this.value)"><div class="sw-val" id="rVal">14px</div></div>
+    </div>
+    <div class="dgroup" style="margin-top:10px">
+      <div class="dglbl">Redondeo fotos</div>
+      <div class="sw-wrap"><input type="range" id="tSlider" min="0" max="20" value="8" oninput="onThumb(this.value)"><div class="sw-val" id="tVal">8px</div></div>
+    </div>
+  </div>
+
+  <!-- ── COLUMNAS ── -->
+  <div class="card">
+    <div class="ctitle">📐 Columnas de productos</div>
+    <div class="cpick">
+      <button class="copt on" id="copt1" onclick="setCol(1)">
+        <svg width="28" height="24" viewBox="0 0 28 24"><rect x="2" y="2" width="24" height="6" rx="2" fill="currentColor"/><rect x="2" y="11" width="24" height="6" rx="2" fill="currentColor" opacity=".4"/></svg>
+        <span>1 col</span>
+      </button>
+      <button class="copt" id="copt2" onclick="setCol(2)">
+        <svg width="28" height="24" viewBox="0 0 28 24"><rect x="1" y="2" width="11" height="9" rx="2" fill="currentColor"/><rect x="16" y="2" width="11" height="9" rx="2" fill="currentColor"/><rect x="1" y="14" width="11" height="9" rx="2" fill="currentColor" opacity=".4"/><rect x="16" y="14" width="11" height="9" rx="2" fill="currentColor" opacity=".4"/></svg>
+        <span>2 col</span>
+      </button>
+      <button class="copt" id="coptL" onclick="setCol('list')">
+        <svg width="28" height="24" viewBox="0 0 28 24"><rect x="6" y="3" width="20" height="4" rx="2" fill="currentColor"/><rect x="1.5" y="3" width="3.5" height="4" rx="1" fill="currentColor"/><rect x="6" y="10" width="20" height="4" rx="2" fill="currentColor" opacity=".6"/><rect x="1.5" y="10" width="3.5" height="4" rx="1" fill="currentColor" opacity=".6"/><rect x="6" y="17" width="20" height="4" rx="2" fill="currentColor" opacity=".3"/><rect x="1.5" y="17" width="3.5" height="4" rx="1" fill="currentColor" opacity=".3"/></svg>
+        <span>Lista</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── TIPOGRAFÍA ── -->
+  <div class="card"><div class="ctitle">✍️ Tipografía — Títulos</div><div class="fopts" id="fontTitOpts"></div></div>
+  <div class="card"><div class="ctitle">📝 Tipografía — Cuerpo</div><div class="fopts" id="fontBodOpts"></div></div>
+
+  <!-- ── TAMAÑOS DE FUENTE ── -->
+  <div class="card">
+    <div class="ctitle">📏 Tamaño de fuentes</div>
+    <div class="field">
+      <label>Tamaño de títulos (nombres de productos)</label>
+      <input type="number" id="fontSizeTitleInput" min="14" max="32" value="18" step="1" oninput="onFontSizeTitle(this.value)" style="width:80px;padding:8px;border:1.5px solid var(--bd);border-radius:7px;font-size:14px;text-align:center">
+      <span style="margin-left:8px;color:var(--muted);font-size:12px">px (14-32)</span>
+    </div>
+    <div class="field">
+      <label>Tamaño de descripciones</label>
+      <input type="number" id="fontSizeBodyInput" min="11" max="20" value="14" step="1" oninput="onFontSizeBody(this.value)" style="width:80px;padding:8px;border:1.5px solid var(--bd);border-radius:7px;font-size:14px;text-align:center">
+      <span style="margin-left:8px;color:var(--muted);font-size:12px">px (11-20)</span>
+    </div>
+    <div class="field">
+      <label>Tamaño de precios</label>
+      <input type="number" id="fontSizePriceInput" min="14" max="28" value="18" step="1" oninput="onFontSizePrice(this.value)" style="width:80px;padding:8px;border:1.5px solid var(--bd);border-radius:7px;font-size:14px;text-align:center">
+      <span style="margin-left:8px;color:var(--muted);font-size:12px">px (14-28)</span>
+    </div>
+  </div>
+
+  <!-- ── CATEGORÍAS (Cajones expandibles) ── -->
+  <div class="card">
+    <div class="ctitle">🗂️ Cajones de Categorías</div>
+    <div class="info">Configurá la posición del texto en los cajones de categorías del menú.</div>
+    
+    <div class="field">
+      <label>Posición horizontal del texto</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <button class="btn btn-o" id="catPosLeft" onclick="setCatTextPos('left')" style="font-size:12px">⬅️ Izquierda</button>
+        <button class="btn btn-o" id="catPosCenter" onclick="setCatTextPos('center')" style="font-size:12px">↕️ Centro</button>
+        <button class="btn btn-o" id="catPosRight" onclick="setCatTextPos('right')" style="font-size:12px">➡️ Derecha</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Posición vertical del texto</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <button class="btn btn-o" id="catVertTop" onclick="setCatTextVertical('top')" style="font-size:12px">⬆️ Superior</button>
+        <button class="btn btn-o" id="catVertMiddle" onclick="setCatTextVertical('middle')" style="font-size:12px">↔️ Medio</button>
+        <button class="btn btn-o" id="catVertBottom" onclick="setCatTextVertical('bottom')" style="font-size:12px">⬇️ Inferior</button>
+      </div>
+    </div>
+
+    <div class="info" style="margin-top:12px">
+      <strong>💡 Recomendación de imágenes:</strong><br>
+      • Tamaño: <b>1200 × 200 px</b> (formato panorámico 6:1)<br>
+      • Formato: JPG o WEBP<br>
+      • Peso: Máximo 500 KB por imagen
+    </div>
+  </div>
+
+  <!-- ── IDIOMAS DEL MENÚ ── -->
+  <div class="card">
+    <div class="ctitle">🌐 Idiomas del Menú</div>
+    <div class="info">Seleccioná qué idiomas querés que vean tus clientes en el menú.</div>
+    
+    <div class="field" style="margin-bottom:8px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none">
+        <input type="checkbox" id="langEsEnabled" checked disabled style="width:auto;cursor:not-allowed">
+        <span>🇪🇸 Español (siempre activo)</span>
+      </label>
+    </div>
+    
+    <div class="field" style="margin-bottom:8px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none">
+        <input type="checkbox" id="langEnEnabled" style="width:auto;cursor:pointer">
+        <span>🇬🇧 Inglés</span>
+      </label>
+    </div>
+    
+    <div class="field" style="margin-bottom:0">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none">
+        <input type="checkbox" id="langPtEnabled" style="width:auto;cursor:pointer">
+        <span>🇧🇷 Portugués (Brasil)</span>
+      </label>
+    </div>
+    
+    <div class="info" style="margin-top:12px;font-size:11px">
+      Si solo dejás Español activo, no se mostrará el selector de idiomas en el menú.
+    </div>
+  </div>
+
+  <!-- ── SELECTOR DE IDIOMAS ── -->
+  <div class="card">
+    <div class="ctitle">🌐 Selector de Idiomas</div>
+    <div class="info">Configurá cómo se ve el selector de idioma (🇪🇸/🇬🇧) en el menú.</div>
+    
+    <div class="field">
+      <label>Posición en el header</label>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+        <button class="btn btn-o" id="langPosTopLeft" onclick="setLangPos('top-left')" style="font-size:11px">↖️ Superior izq.</button>
+        <button class="btn btn-o" id="langPosTopRight" onclick="setLangPos('top-right')" style="font-size:11px">↗️ Superior der.</button>
+        <button class="btn btn-o" id="langPosBottomLeft" onclick="setLangPos('bottom-left')" style="font-size:11px">↙️ Inferior izq.</button>
+        <button class="btn btn-o" id="langPosBottomRight" onclick="setLangPos('bottom-right')" style="font-size:11px">↘️ Inferior der.</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Tamaño de las banderas</label>
+      <input type="number" id="langSizeInput" min="24" max="48" value="32" step="4" oninput="setLangSize(this.value)" style="width:80px;padding:8px;border:1.5px solid var(--bd);border-radius:7px;font-size:14px;text-align:center">
+      <span style="margin-left:8px;color:var(--muted);font-size:12px">px (24-48)</span>
+    </div>
+
+    <div class="field">
+      <label>Estilo de las banderas</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <button class="btn btn-o" id="langStyleRound" onclick="setLangStyle('round')" style="font-size:11px">🔘 Redondo</button>
+        <button class="btn btn-o" id="langStyleRounded" onclick="setLangStyle('rounded')" style="font-size:11px">📐 Redondeado</button>
+        <button class="btn btn-o" id="langStyleSquare" onclick="setLangStyle('square')" style="font-size:11px">⬜ Cuadrado</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Separación entre banderas</label>
+      <input type="number" id="langGapInput" min="4" max="16" value="8" step="2" oninput="setLangGap(this.value)" style="width:80px;padding:8px;border:1.5px solid var(--bd);border-radius:7px;font-size:14px;text-align:center">
+      <span style="margin-left:8px;color:var(--muted);font-size:12px">px (4-16)</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ LOCAL ══ -->
+<div class="pg" id="pg-local">
+  <div class="ph"><h1>Local</h1><p>Identidad de tu negocio</p></div>
+
+  <!-- LOGO -->
+  <div class="card">
+    <div class="ctitle">🖼️ Logo del negocio</div>
+    <div class="info">Recomendamos PNG con fondo transparente para mejor resultado.</div>
+    <div class="upz upz-sq" id="logoZone">
+      <input type="file" id="logoFile" accept="image/jpeg,image/png,image/webp,image/svg+xml">
+      <img class="upz-prev" id="logoPrev">
+      <div class="upz-ov">📷 Cambiar</div>
+      <div class="upz-body"><div class="upz-ico">📷</div><div class="upz-main">Subir logo</div><div class="upz-sub"><b>PNG transparente ideal · JPG · WEBP · SVG</b></div></div>
+    </div>
+    <button class="btn btn-o btn-sm" style="margin-top:7px;width:auto" onclick="removeLogo()">✕ Quitar logo</button>
+    <div class="field" style="margin-top:12px">
+      <label>Tamaño del logo</label>
+      <div class="slider-wrap">
+        <input type="range" id="logoSizeSlider" min="28" max="300" value="56" step="4" oninput="onLogoSize(this.value)">
+        <div class="slider-val" id="logoSizeVal">56px</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BANNER -->
+  <div class="card">
+    <div class="ctitle">🌄 Banner / foto del local</div>
+    <div class="info">Se muestra como fondo del encabezado. Tamaño recomendado: <b>1200 × 675 px</b> (16:9) · JPG o WEBP.</div>
+    <div class="upz" id="hdrImgZone" style="height:110px">
+      <input type="file" id="hdrImgFile" accept="image/jpeg,image/png,image/webp,image/gif">
+      <img class="upz-prev" id="hdrImgPrev">
+      <div class="upz-ov">📷 Cambiar</div>
+      <div class="upz-body"><div class="upz-ico">🌄</div><div class="upz-main">Subir foto del local</div><div class="upz-sub"><b>Recomendado: 1200×675px · JPG · WEBP</b></div></div>
+    </div>
+    <button class="btn btn-o btn-sm" style="margin-top:7px;width:auto" onclick="removeHdrImg()">✕ Quitar imagen</button>
+  </div>
+
+  <!-- NOMBRE Y ESLOGAN -->
+  <div class="card">
+    <div class="ctitle">🏪 Nombre y eslogan</div>
+    <div class="info">Opcionales — se muestran solo si no hay logo cargado.</div>
+    <div class="field">
+      <label>Nombre del restaurante</label>
+      <input id="rName" placeholder="Ej: La Parrilla" style="font-size:16px;font-weight:600" oninput="livePreviewName(this.value)">
+    </div>
+    <div class="field">
+      <label>Eslogan / subtítulo</label>
+      <input id="rSub" placeholder="Ej: Fuego &amp; Sabor" oninput="livePreviewSub(this.value)">
+    </div>
+  </div>
+
+  <!-- DATOS OPERATIVOS -->
+  <div class="card">
+    <div class="ctitle">⚙️ Datos operativos</div>
+    <div class="row2">
+      <div class="field"><label>Mesas</label><input type="number" id="rTables" value="10" min="1" inputmode="numeric"></div>
+      <div class="field"><label>Moneda</label>
+        <select id="rCur"><option value="$">$ ARS</option><option value="USD">USD</option><option value="R$">R$ BRL</option><option value="€">€ EUR</option><option value="CLP">CLP</option></select>
+      </div>
+    </div>
+    <div class="field"><label>WhatsApp</label><input id="rWa" placeholder="5491112345678" type="tel" inputmode="tel"></div>
+    <div class="field">
+      <label>Modo de Pedido</label>
+      <select id="rOrderMode">
+        <option value="waiter">👋 Llamar Mozo (sin WhatsApp)</option>
+        <option value="whatsapp">📱 Enviar por WhatsApp</option>
+      </select>
+    </div>
+    <div class="info" style="font-size:11px;color:var(--mu);margin-top:-6px">
+      <b>Llamar Mozo:</b> El cliente arma el pedido y llama al mozo (no usa WhatsApp)<br>
+      <b>WhatsApp:</b> El pedido se envía directamente al número configurado arriba
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">✏️ Textos de la interfaz</div>
+    <div class="info">Editá los textos que ve el cliente. Útil para traducir o personalizar.</div>
+    <div class="field"><label>Botón carrito (flotante)</label><input id="tFab" placeholder="Pedido" value="Pedido"></div>
+    <div class="field"><label>Botón "Agregar"</label><input id="tAdd" placeholder="Agregar al pedido" value="Agregar al pedido"></div>
+    <div class="field"><label>Título del carrito</label><input id="tCartT" placeholder="Tu Pedido" value="Tu Pedido"></div>
+    <div class="field"><label>Cerrar carrito</label><input id="tCartC" placeholder="CERRAR ✕" value="CERRAR ✕"></div>
+    <div class="field"><label>Confirmar pedido</label><input id="tConf" placeholder="Confirmar pedido →" value="Confirmar pedido →"></div>
+    <div class="field"><label>Carrito vacío</label><input id="tEmpty" placeholder="Tu pedido está vacío." value="Tu pedido está vacío."></div>
+    <div class="field"><label>Título confirmación</label><input id="tOkT" placeholder="¡Pedido enviado!" value="¡Pedido enviado!"></div>
+    <div class="field"><label>Subtítulo confirmación</label><input id="tOkS" placeholder="Tu pedido está en camino." value="Tu pedido está en camino a la cocina."></div>
+    <div class="field"><label>Botón final</label><input id="tDone" placeholder="¡Listo, gracias!" value="¡Listo, gracias!"></div>
+    <div class="field">
+      <label>Mensaje para llamar al mozo</label>
+      <textarea id="tWaiter" placeholder="👋 Si esta es tu elección!
+Llama al camarero para realizar tu pedido" rows="3" style="resize:vertical"></textarea>
+    </div>
+    <div class="info" style="font-size:11px;color:var(--mu);margin-top:-6px">
+      Este mensaje se muestra cuando el modo de pedido es "Llamar Mozo"
+    </div>
+  </div>
+</div>
+
+<!-- ══ CARTA ══ -->
+<div class="pg" id="pg-carta">
+  <div class="ph"><h1>Carta</h1><p id="prodCount">0 productos</p></div>
+  <div class="card">
+    <div class="ctitle">📂 Categorías</div>
+    <div id="catList"></div>
+    <button class="btn btn-o btn-sm" style="margin-top:4px;width:auto" onclick="addCat()">+ Agregar categoría</button>
+  </div>
+  
+  <!-- TRADUCCIÓN AUTOMÁTICA -->
+
+  <div class="card">
+    <div class="ctitle">🌐 Traducción Automática</div>
+    <div class="info">Traduce todos los productos y categorías al inglés y portugués automáticamente (gratis).</div>
+    
+    <div id="translationStatus" style="display:none;padding:12px;background:rgba(0,200,100,0.1);border:1px solid rgba(0,200,100,0.3);border-radius:8px;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">✅ Estado de traducción</div>
+      <div id="translationStats" style="font-size:12px;color:var(--mu)"></div>
+    </div>
+    
+    <button class="btn btn-p" onclick="translateAll()" id="translateBtn">
+      🌎 Traducir todo (EN + PT)
+    </button>
+    
+    <div id="translateProgress" style="display:none;margin-top:12px">
+      <div style="font-size:12px;color:var(--mu);margin-bottom:6px">Traduciendo...</div>
+      <div style="height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden">
+        <div id="translateBar" style="height:100%;background:var(--accent);width:0%;transition:width 0.3s"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 9px;margin-bottom:5px">
+    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.08em">Productos</div>
+    <button class="btn btn-p btn-sm" onclick="openModal()">+ Nuevo</button>
+  </div>
+  <div class="srow">
+    <input class="sinp" type="search" placeholder="🔍 Buscar..." oninput="renderProds(this.value)">
+    <select class="ssel" id="filtCat" onchange="renderProds()"></select>
+  </div>
+  <div id="prodList"></div>
+</div>
+
+<!-- ══ MESAS ══ -->
+<div class="pg" id="pg-mesas">
+  <div class="ph"><h1>Mesas & QR</h1><p>Un QR por mesa</p></div>
+  <div class="card">
+    <div class="info info-b">Los QR se generan online. Una vez impresos, el menú funciona sin internet.</div>
+    <div class="field"><label>URL base del menú</label><input id="qrUrl" value="menu.html" placeholder="https://tu-dominio.com/menu.html"></div>
+    <div class="field"><label>Cantidad de mesas</label><input type="number" id="qrN" value="10" min="1" max="50" inputmode="numeric"></div>
+    <button class="btn btn-p" onclick="genQR()">Generar QR</button>
+    <div class="qrgrid" id="qrGrid"></div>
+  </div>
+</div>
+
+<div class="pg" id="pg-analytics">
+  <div class="ph"><h1>📊 Estadísticas</h1><p>Actividad registrada en el menú</p></div>
+  <div class="card">
+    <div class="info info-b">Los datos se guardan en el navegador del cliente. Se acumulan con el uso real del menú.</div>
+    <div id="analyticsContent" style="margin-top:8px"></div>
+    <button class="btn btn-o" onclick="clearAnalytics()" style="margin-top:16px;width:100%">🗑 Borrar estadísticas</button>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /wrap -->
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="bni on" id="nav-inicio" onclick="goPage('inicio')"><span class="ico">🏠</span>Inicio</button>
+  <button class="bni" id="nav-importar" onclick="goPage('importar')"><span class="ico">📥</span>Importar</button>
+  <button class="bni" id="nav-diseno" onclick="goPage('diseno')"><span class="ico">🎨</span>Diseño</button>
+  <button class="bni" id="nav-local" onclick="goPage('local')"><span class="ico">🏪</span>Local</button>
+  <button class="bni" id="nav-carta" onclick="goPage('carta')"><span class="ico">🍽️</span>Carta<span class="nbadge" id="navBadge" style="display:none">0</span></button>
+  <button class="bni" id="nav-mesas" onclick="goPage('mesas')"><span class="ico">🪑</span>Mesas</button>
+  <button class="bni" id="nav-analytics" onclick="goPage('analytics')"><span class="ico">📊</span>Stats</button>
+</nav>
+
+<!-- PRODUCT MODAL -->
+<div class="moverlay" id="prodModal" onclick="if(event.target===this)closeModal()">
+  <div class="msheet">
+    <div class="mdrag"></div>
+    <div class="mhdr">
+      <div class="mtitle" id="modalTitle">Nuevo producto</div>
+      <button class="mclose" onclick="closeModal()">✕</button>
+    </div>
+    <div class="mbody">
+
+      <!-- Image + Video uploads side by side -->
+      <div class="upload-row">
+        <div class="upload-col">
+          <label>📷 Foto del plato</label>
+          <!-- 16:9 image upload -->
+          <div class="piup" id="piup">
+            <input type="file" id="pImgFile" accept="image/jpeg,image/png,image/webp,image/gif,image/avif">
+            <img class="piup-prev" id="pImgPrev">
+            <div class="piup-ov">📷 Cambiar</div>
+            <div class="piup-hint">
+              <div class="ico">📷</div>
+              <div style="font-weight:700;margin-bottom:2px">Foto</div>
+              <div style="font-size:10px;color:var(--mu)">JPG PNG WEBP</div>
+            </div>
+          </div>
+          <input id="pImgUrl" type="url" placeholder="o pegá URL https://..." style="width:100%;padding:7px 9px;border:1.5px solid var(--bd);border-radius:7px;font-size:12px;color:var(--tx);background:var(--bg);outline:none;-webkit-appearance:none">
+        </div>
+
+        <div class="upload-col">
+          <label>🎬 Video del plato</label>
+          <!-- 9:16 video upload — shows actual video preview -->
+          <div class="viup" id="viup">
+            <input type="file" id="pVidFile" accept="video/mp4,video/webm,video/ogg,video/quicktime,video/*">
+            <video class="viup-prev" id="pVidPrev" muted loop playsinline></video>
+            <div class="viup-ov">🎬 Cambiar</div>
+            <div class="viup-hint" id="viupHint">
+              <div class="ico">🎬</div>
+              <div style="font-weight:700;margin-bottom:2px;color:#fff">Video</div>
+              <div style="font-size:10px;color:#aaa">MP4 WEBM MOV</div>
+              <div style="font-size:9px;color:#888;margin-top:4px">Máx ~50MB</div>
+            </div>
+            <div class="viup-bar" id="viupBar">
+              <span class="viup-fname" id="viupName"></span>
+              <button class="viup-del" onclick="removeVideo(event)">✕</button>
+            </div>
+          </div>
+          <input id="pVideoUrl" type="text" placeholder="o ruta: videos/plato.mp4" style="width:100%;padding:7px 9px;border:1.5px solid var(--bd);border-radius:7px;font-size:12px;color:var(--tx);background:var(--bg);outline:none;-webkit-appearance:none">
+        </div>
+      </div>
+
+      <!-- AVISO si los archivos son grandes -->
+      <div id="mediaWarn" style="display:none;background:#fff3cd;border:1px solid #ffc107;border-radius:7px;padding:8px 10px;font-size:11px;color:#856404;margin-bottom:10px;line-height:1.5">
+        ⚠️ <b>Video grande detectado.</b> Videos mayores a 30MB pueden hacer lento el guardado. Considerá usar un video comprimido en MP4 o referenciar por ruta de archivo.
+      </div>
+
+      <div class="field"><label>Nombre *</label><input id="pName" placeholder="Ej: Risotto de hongos" autocomplete="off"></div>
+      <div class="field"><label>Descripción corta * (tarjeta)</label><input id="pDescS" placeholder="Máx 100 caracteres" autocomplete="off"></div>
+      <div class="field"><label>Categoría *</label><select id="pCat"></select></div>
+      <div class="field"><label>Precio *</label><input type="number" id="pPrice" placeholder="0" min="0" inputmode="decimal"></div>
+      <div style="display:flex;gap:20px;padding:10px 0;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);margin-bottom:4px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
+          <input type="checkbox" id="pFeatured" style="width:20px;height:20px;cursor:pointer;accent-color:var(--ac)">
+          <span>⭐ <b>Destacado</b></span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
+          <input type="checkbox" id="pAvailable" checked style="width:20px;height:20px;cursor:pointer;accent-color:var(--ac)">
+          <span>✅ <b>Disponible</b></span>
+        </label>
+      </div>
+      <div class="field"><label>Descripción larga (detalle)</label><textarea id="pDescL" placeholder="Historia, ingredientes, preparación..."></textarea></div>
+      <div class="field"><label>Badge / etiqueta</label><input id="pBadge" placeholder="Nuevo, Chef, Recomendado..." autocomplete="off"></div>
+      <div class="field">
+        <label>Tags (Enter para agregar)</label>
+        <div class="tags-box" onclick="document.getElementById('tinp').focus()">
+          <div id="tagsDisp" style="display:contents"></div>
+          <input class="tinp" id="tinp" placeholder="Sin gluten, Vegano..." onkeydown="handleTag(event)">
+        </div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-o" style="flex:1" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-p" style="flex:2" onclick="saveProd()">Guardar producto</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════════
+const THEMES=[
+  {id:'brasa',name:'Brasa',bg:'#0d0905',ac:'#d4a843',tx:'#f7edd8',card:'#1e1509',sf:'#161008',mu:'#7a6a52',adk:'#0d0905'},
+  {id:'dia',name:'Día',bg:'#fffdf8',ac:'#b8883a',tx:'#1a1410',card:'#f5f0e8',sf:'#fff',mu:'#8a7e6e',adk:'#fff'},
+  {id:'mar',name:'Mar',bg:'#0d1f22',ac:'#48cae4',tx:'#e8f4f8',card:'#162a2e',sf:'#0f2428',mu:'#5a8a94',adk:'#0d1f22'},
+  {id:'bosque',name:'Bosque',bg:'#1b2a1b',ac:'#a7c957',tx:'#f0f4e8',card:'#233223',sf:'#1e301e',mu:'#6a8a5a',adk:'#1b2a1b'},
+  {id:'noche',name:'Noche',bg:'#1a0a1a',ac:'#e040fb',tx:'#f8e8ff',card:'#2a1a2a',sf:'#1e0e1e',mu:'#8a6a8a',adk:'#1a0a1a'},
+  {id:'fuego',name:'Fuego',bg:'#1a0000',ac:'#ff5722',tx:'#fff3ee',card:'#2a0800',sf:'#1e0400',mu:'#8a5040',adk:'#1a0000'},
+  {id:'cafe',name:'Café',bg:'#1c1208',ac:'#c8a26a',tx:'#f0e8d8',card:'#2a1e10',sf:'#201608',mu:'#7a6a4a',adk:'#1c1208'},
+  {id:'nieve',name:'Nieve',bg:'#f8f9fa',ac:'#212529',tx:'#212529',card:'#fff',sf:'#fff',mu:'#6c757d',adk:'#f8f9fa'},
+];
+const COLORS_GENERAL=[
+  {k:'colorBg',l:'Fondo'},{k:'colorText',l:'Texto'},{k:'colorMuted',l:'Secundario'},{k:'colorSurface',l:'Modales'},
+];
+const COLORS_BTN=[
+  {k:'colorAccent',l:'Fondo btn'},{k:'accentDark',l:'Texto btn'},{k:'btnBorderColor',l:'Borde btn'},
+];
+const COLORS_CAT=[
+  {k:'catAccent',l:'Activo'},{k:'catAccentText',l:'Txt activo'},{k:'catBorder',l:'Borde'},
+];
+const COLORS_CARD=[
+  {k:'colorCard',l:'Tarjeta'},{k:'colorText',l:'Nombre'},{k:'colorAccent',l:'Precio'},{k:'colorBorder',l:'Borde'},
+];
+const FONT_T=[
+  {id:'Georgia,"Times New Roman",serif',n:'Georgia',s:'Parrilla & Sabor'},
+  {id:'"Palatino Linotype",Palatino,serif',n:'Palatino',s:'Parrilla & Sabor'},
+  {id:'"Trebuchet MS",sans-serif',n:'Trebuchet',s:'Parrilla & Sabor'},
+  {id:'Garamond,serif',n:'Garamond',s:'Parrilla & Sabor'},
+  {id:'Impact,"Arial Narrow",sans-serif',n:'Impact',s:'PARRILLA & SABOR'},
+  {id:'"Courier New",Courier,monospace',n:'Courier',s:'Parrilla & Sabor'},
+];
+const FONT_B=[
+  {id:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',n:'Sistema',s:'Texto del menú'},
+  {id:'Georgia,serif',n:'Georgia serif',s:'Texto del menú'},
+  {id:'"Trebuchet MS",sans-serif',n:'Trebuchet',s:'Texto del menú'},
+  {id:'"Courier New",Courier,monospace',n:'Courier',s:'Texto del menú'},
+  {id:'"Arial Narrow",Arial,sans-serif',n:'Arial Narrow',s:'Texto del menú'},
+];
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let S={
+  restaurant:{name:'',sub:'',tables:10,currency:'$',whatsapp:'',orderMode:'waiter',logo:null,logoSize:56},
+  appearance:{
+    colorBg:'#0d0905',colorAccent:'#d4a843',colorText:'#f7edd8',colorCard:'#1e1509',
+    colorSurface:'#161008',colorMuted:'#7a6a52',accentDark:'#0d0905',colorBorder:'#2a1e0d',
+    btnBorderWidth:0,btnBorderColor:'#d4a843',btnTransparent:false,btnStyle:'solid',btnEffect:'flat',catStyle:'solid',catEffect:'flat',catBorderWidth:1,catFontSize:14,catAccent:'#d4a843',catAccentText:'#0d0905',catBorder:'rgba(255,255,255,0.18)',
+    fontTitle:'Georgia,"Times New Roman",serif',
+    fontBody:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+    fontSizeTitle:18,fontSizeBody:14,fontSizePrice:18,
+    borderRadius:14,thumbRadius:8,headerImg:null,activeTheme:'brasa',defaultCols:1,
+    categoryTextPos:'center',categoryTextVertical:'middle',
+    langSelectorPos:'top-right',langSelectorSize:32,langSelectorStyle:'rounded',langSelectorGap:8,
+    langEnEnabled:false,langPtEnabled:false
+  },
+  texts:{
+    fabLabel:'Pedido',addBtn:'Agregar al pedido',cartTitle:'Tu Pedido',cartClose:'CERRAR ✕',
+    confirmBtn:'Confirmar pedido →',emptyCart:'Tu pedido está vacío.',
+    confirmTitle:'¡Pedido enviado!',confirmSub:'Tu pedido está en camino a la cocina.',doneBtn:'¡Listo, gracias!'
+  },
+  categories:[],
+  categoryImages:{},
+  products:[]
+};
+let importedData=null, editingId=null, curTags=[];
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+function applyLoaded(p){
+  S={...S,...p,appearance:{...S.appearance,...p.appearance},texts:{...S.texts,...p.texts},restaurant:{...S.restaurant,...p.restaurant}};
+  if(p.products) S.products=p.products;
+  if(p.categories) S.categories=p.categories;
+}
+function finishInit(){
+  loadForms();buildThemes();buildColors();buildFonts();
+  renderDash();renderCatList();renderProds();updatePrev();setupUploads();
+}
+function init(){
+  fetch('menu-data.json?_='+Date.now())
+    .then(r=>{if(!r.ok)throw new Error('no file');return r.json();})
+    .then(p=>{applyLoaded(p);finishInit();setTimeout(()=>toast('✅ Datos cargados desde menu-data.json'),400);})
+    .catch(()=>{
+      const raw=localStorage.getItem('menuos_v2');
+      if(raw){try{applyLoaded(JSON.parse(raw));}catch(e){console.warn(e);}}
+      finishInit();
+    });
+}
+
+// ══════════════════════════════════════════════
+// SETUP FILE UPLOADS
+// All inputs are wired via addEventListener — NOT onclick
+// The <input> already covers the entire zone via CSS (position:absolute;inset:0)
+// ══════════════════════════════════════════════
+function setupUploads(){
+  // Header image
+  byId('hdrImgFile').addEventListener('change',function(){
+    readImg(this.files[0], (path) => {
+      S.appearance.headerImg=path;
+      showPrev('hdrImgPrev',path);
+      byId('hdrImgZone').querySelector('.upz-body').style.display='none';
+      updatePrev();toast('🖼️ Imagen de fondo cargada');
+    }, 'restaurant');
+    this.value=''; // reset so same file can be re-selected
+  });
+
+  // Logo
+  byId('logoFile').addEventListener('change',function(){
+    readImg(this.files[0], (path) => {
+      S.restaurant.logo=path;
+      showPrev('logoPrev',path);
+      byId('logoZone').querySelector('.upz-body').style.display='none';
+      toast('✅ Logo cargado');
+    }, 'restaurant');
+    this.value='';
+  });
+
+  // Product image in modal
+  byId('pImgFile').addEventListener('change',function(){
+    readImg(this.files[0], (path) => {
+      const img=byId('pImgPrev');
+      img.src=path; img.style.display='block';
+      img.dataset.b64=path;
+      byId('piup').querySelector('.piup-hint').style.display='none';
+      toast('📷 Foto cargada');
+    }, 'product');
+    this.value='';
+  });
+
+  // Product VIDEO in modal — read as base64 blob URL
+  byId('pVidFile').addEventListener('change',function(){
+    const file=this.files[0];
+    if(!file)return;
+    if(!file.type.startsWith('video/')){toast('❌ Solo archivos de video (MP4, WEBM, MOV)');return}
+
+    // Warn if very large (>50MB)
+    const MB=file.size/(1024*1024);
+    byId('mediaWarn').style.display=MB>30?'block':'none';
+
+    // Show preview via object URL (no base64 for huge files — use URL instead)
+    const url=URL.createObjectURL(file);
+    const vid=byId('pVidPrev');
+    vid.src=url; vid.style.display='block'; vid.play().catch(()=>{});
+
+    // Store both: object URL for preview and the actual file for saving
+    vid.dataset.objUrl=url;
+
+    // Read as base64 for storage (warn if big)
+    if(MB>50){
+      // Too large for localStorage — keep only the filename as reference
+      vid.dataset.b64='';
+      vid.dataset.fname=file.name;
+      byId('pVideoUrl').value='videos/'+file.name;
+      toast('⚠️ Video grande: se guardó como referencia de archivo');
+    } else {
+      // Read full base64
+      const r=new FileReader();
+      r.onload=e=>{
+        vid.dataset.b64=e.target.result;
+        vid.dataset.fname=file.name;
+        toast('🎬 Video cargado ('+MB.toFixed(1)+'MB)');
+      };
+      r.onerror=()=>toast('❌ Error leyendo el video');
+      r.readAsDataURL(file);
+    }
+
+    // Update UI
+    byId('viupHint').style.display='none';
+    byId('viupName').textContent=file.name+' ('+MB.toFixed(1)+'MB)';
+    byId('viupBar').classList.add('show');
+    this.value='';
+  });
+
+  // Import file
+  byId('fileInput').addEventListener('change',function(){
+    if(this.files[0]) handleFile(this.files[0]);
+    this.value='';
+  });
+
+  // Drag-drop on import zone
+  const dz=byId('dropZone');
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag')});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();dz.classList.remove('drag');
+    const f=e.dataTransfer.files[0];if(f)handleFile(f);
+  });
+}
+
+// Read image file → auto-compress if >1.5MB → base64 callback
+async function readImg(file, cb, type = 'product'){
+  if(!file)return;
+  if(!file.type.startsWith('image/') && !file.type.startsWith('video/')){
+    toast('❌ Solo imágenes o videos');
+    return;
+  }
+  
+  try {
+    const result = await uploadMedia(file, type);
+    cb(result.path, result.isVideo);
+    toast(`✅ ${result.isVideo ? 'Video' : 'Imagen'} guardada`);
+  } catch(err) {
+    console.error('Error subiendo archivo:', err);
+    toast('❌ Error subiendo archivo');
+  }
+}
+
+function showPrev(id, src){
+  const img=byId(id);
+  img.src=src;
+  img.style.display='block';
+  // ensure it fills the zone correctly
+  img.style.width='100%';
+  img.style.height='100%';
+  img.style.objectFit='cover';
+}
+
+function byId(id){return document.getElementById(id)}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+function goPage(id){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.bni').forEach(b=>b.classList.remove('on'));
+  byId('pg-'+id).classList.add('on');
+  byId('nav-'+id).classList.add('on');
+  byId('main').scrollTop=0;
+  if(id==='inicio')renderDash();
+  if(id==='carta'){renderCatList();renderProds();updateTranslationStatus()}
+  if(id==='analytics'){renderAnalytics();}
+  if(id==='diseno')updatePrev();
+}
+
+// ══════════════════════════════════════════════
+// FORMS
+// ══════════════════════════════════════════════
+function loadForms(){
+  const r=S.restaurant,a=S.appearance,t=S.texts;
+  byId('rName').value=r.name||'';
+  byId('rSub').value=r.sub||'';
+  byId('rTables').value=r.tables||10;
+  byId('rCur').value=r.currency||'$';
+  byId('rWa').value=r.whatsapp||'';
+  byId('rOrderMode').value=r.orderMode||'waiter';
+  if(r.logo){showPrev('logoPrev',r.logo);byId('logoZone').querySelector('.upz-body').style.display='none'}
+  const ls=r.logoSize||56;
+  byId('logoSizeSlider').value=ls; byId('logoSizeVal').textContent=ls+'px';
+  byId('rSlider').value=a.borderRadius||14; byId('rVal').textContent=(a.borderRadius||14)+'px';
+  byId('tSlider').value=a.thumbRadius||8; byId('tVal').textContent=(a.thumbRadius||8)+'px';
+  // Button style
+  const bw=a.btnBorderWidth||0;
+  if(byId('btnBorderSlider')){byId('btnBorderSlider').value=bw;byId('btnBorderVal').textContent=bw+'px';}
+  onBtnStyle(a.btnStyle||'solid');
+  onBtnEffect(a.btnEffect||'flat');
+  // Cat style
+  onCatStyle(a.catStyle||'solid');
+  onCatEffect(a.catEffect||'flat');
+  const cbw=a.catBorderWidth!=null?a.catBorderWidth:1;
+  if(byId('catBorderSlider')){byId('catBorderSlider').value=cbw;byId('catBorderVal').textContent=cbw+'px';}
+  const cfs=a.catFontSize||14;
+  if(byId('catFontSlider')){byId('catFontSlider').value=cfs;byId('catFontVal').textContent=cfs+'px';}
+  // Font sizes
+  const fst=a.fontSizeTitle||18;
+  if(byId('fontSizeTitleInput')) byId('fontSizeTitleInput').value=fst;
+  const fsb=a.fontSizeBody||14;
+  if(byId('fontSizeBodyInput')) byId('fontSizeBodyInput').value=fsb;
+  const fsp=a.fontSizePrice||18;
+  if(byId('fontSizePriceInput')) byId('fontSizePriceInput').value=fsp;
+  if(a.headerImg){
+    if(a.headerImg.startsWith('data:')){
+      showPrev('hdrImgPrev',a.headerImg);
+      byId('hdrImgZone').querySelector('.upz-body').style.display='none';
+    } else {
+      // Es una ruta de archivo
+      byId('hdrImgPath').value=a.headerImg;
+    }
+  }
+  // texts
+  byId('tFab').value=t.fabLabel||'Pedido';
+  byId('tAdd').value=t.addBtn||'Agregar al pedido';
+  byId('tCartT').value=t.cartTitle||'Tu Pedido';
+  byId('tCartC').value=t.cartClose||'CERRAR ✕';
+  byId('tConf').value=t.confirmBtn||'Confirmar pedido →';
+  byId('tEmpty').value=t.emptyCart||'Tu pedido está vacío.';
+  byId('tOkT').value=t.confirmTitle||'¡Pedido enviado!';
+  byId('tOkS').value=t.confirmSub||'Tu pedido está en camino a la cocina.';
+  byId('tDone').value=t.doneBtn||'¡Listo, gracias!';
+  byId('tWaiter').value=t.waiterMessage||'👋 Si esta es tu elección!\nLlama al camarero para realizar tu pedido';
+  // Idiomas habilitados
+  byId('langEnEnabled').checked=a.langEnEnabled||false;
+  byId('langPtEnabled').checked=a.langPtEnabled||false;
+  syncCol(a.defaultCols||1);
+  // Category text position
+  setCatTextPos(a.categoryTextPos||'center');
+  setCatTextVertical(a.categoryTextVertical||'middle');
+  // Language selector
+  setLangPos(a.langSelectorPos||'top-right');
+  if(byId('langSizeInput')) byId('langSizeInput').value=a.langSelectorSize||32;
+  setLangStyle(a.langSelectorStyle||'rounded');
+  if(byId('langGapInput')) byId('langGapInput').value=a.langSelectorGap||8;
+  
+  // Carousel
+  renderCarouselEditor();
+}
+
+function collectForms(){
+  const r=S.restaurant;
+  r.name=byId('rName').value.trim();
+  r.sub=byId('rSub').value.trim();
+  r.tables=parseInt(byId('rTables').value)||10;
+  r.currency=byId('rCur').value;
+  r.whatsapp=byId('rWa').value.trim();
+  r.orderMode=byId('rOrderMode').value||'waiter';
+  r.logoSize=parseInt(byId('logoSizeSlider').value)||56;
+  S.texts={
+    fabLabel:byId('tFab').value.trim()||'Pedido',
+    addBtn:byId('tAdd').value.trim()||'Agregar al pedido',
+    cartTitle:byId('tCartT').value.trim()||'Tu Pedido',
+    cartClose:byId('tCartC').value.trim()||'CERRAR ✕',
+    confirmBtn:byId('tConf').value.trim()||'Confirmar pedido →',
+    emptyCart:byId('tEmpty').value.trim()||'Tu pedido está vacío.',
+    confirmTitle:byId('tOkT').value.trim()||'¡Pedido enviado!',
+    confirmSub:byId('tOkS').value.trim()||'Tu pedido está en camino a la cocina.',
+    doneBtn:byId('tDone').value.trim()||'¡Listo, gracias!',
+    waiterMessage:byId('tWaiter').value.trim()||'👋 Si esta es tu elección!\nLlama al camarero para realizar tu pedido'
+  };
+  // Idiomas habilitados
+  S.appearance.langEnEnabled=byId('langEnEnabled').checked;
+  S.appearance.langPtEnabled=byId('langPtEnabled').checked;
+}
+
+// ══════════════════════════════════════════════
+// DESIGN
+// ══════════════════════════════════════════════
+function buildThemes(){
+  const w=byId('tscroll');
+  THEMES.forEach(t=>{
+    const d=document.createElement('div');
+    d.className='tcard'+(S.appearance.activeTheme===t.id?' on':'');
+    d.innerHTML=`<div class="tprev" style="background:${t.bg}"><div class="tdot" style="background:${t.ac}"></div><div class="tdot" style="background:${t.tx};opacity:.5"></div><div class="tdot" style="background:${t.card}"></div></div><div class="tname">${t.name}</div>`;
+    d.onclick=()=>applyTheme(t.id);
+    w.appendChild(d);
+  });
+}
+function applyTheme(id){
+  const t=THEMES.find(x=>x.id===id);if(!t)return;
+  Object.assign(S.appearance,{colorBg:t.bg,colorAccent:t.ac,colorText:t.tx,colorCard:t.card,colorSurface:t.sf,colorMuted:t.mu,accentDark:t.adk,activeTheme:id});
+  COLORS.forEach(({k})=>{
+    const inp=byId('cp_'+k),sh=byId('cs_'+k);
+    if(inp&&S.appearance[k]){const h=toHex(S.appearance[k]);inp.value=h;sh.style.background=S.appearance[k]}
+  });
+  document.querySelectorAll('.tcard').forEach((c,i)=>c.classList.toggle('on',THEMES[i].id===id));
+  updatePrev();toast('🎨 Tema '+t.name+' aplicado');
+}
+function toHex(c){return(c&&c.startsWith('#')&&c.length===7)?c:'#000000'}
+// ══ COLOR PICKER ══
+let _cpKey=null,_cpH=0,_cpS=1,_cpV=1;
+function hsvToHex(h,s,v){
+  let r,g,b;const i=Math.floor(h/60)%6,f=h/60-Math.floor(h/60),p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s);
+  switch(i){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;
+    case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;default:r=v;g=p;b=q;}
+  return '#'+[r,g,b].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');
+}
+function hexToHsv(hex){
+  let r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;
+  let h=0,s=max?d/max:0,v=max;
+  if(d){if(max===r)h=(g-b)/d+(g<b?6:0);else if(max===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;}
+  return[h,s,v];
+}
+function openColorPicker(key,el){
+  _cpKey=key;
+  const hex=S.appearance[key]||'#d4a843';
+  [_cpH,_cpS,_cpV]=hexToHsv(toHex(hex));
+  const popup=byId('cpopup');
+  popup.classList.add('open');
+  // Position smart — always inside viewport
+  const rect=el.getBoundingClientRect();
+  const pH=popup.offsetHeight||300;
+  const pW=260;
+  let left=Math.max(8,Math.min(rect.left,window.innerWidth-pW-8));
+  let top;
+  if(rect.bottom+pH+10 < window.innerHeight){
+    top=rect.bottom+6;
+  } else {
+    top=Math.max(8,rect.top-pH-6);
+  }
+  popup.style.left=left+'px'; popup.style.top=top+'px';
+  renderPicker();
+}
+function renderPicker(){
+  const popup=byId('cpopup');
+  const field=popup.querySelector('.cp-field-inner');
+  field.style.background=`hsl(${_cpH},100%,50%)`;
+  // White overlay
+  field.style.backgroundImage='linear-gradient(to right,#fff,transparent),linear-gradient(to top,#000,transparent)';
+  // cursor
+  const cur=popup.querySelector('.cp-cursor');
+  cur.style.left=(_cpS*100)+'%'; cur.style.top=((1-_cpV)*100)+'%';
+  // hue thumb
+  const ht=popup.querySelector('.cp-hue-thumb');
+  ht.style.left=(_cpH/360*100)+'%';
+  const hex=hsvToHex(_cpH,_cpS,_cpV);
+  popup.querySelector('.cp-preview').style.background=hex;
+  popup.querySelector('.cp-input').value=hex;
+}
+function cpFieldClick(e){
+  const rect=e.currentTarget.getBoundingClientRect();
+  _cpS=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+  _cpV=Math.max(0,Math.min(1,1-(e.clientY-rect.top)/rect.height));
+  renderPicker(); applyPickerColor();
+}
+function cpHueClick(e){
+  const rect=e.currentTarget.getBoundingClientRect();
+  _cpH=Math.max(0,Math.min(360,(e.clientX-rect.left)/rect.width*360));
+  renderPicker(); applyPickerColor();
+}
+function cpHexInput(v){
+  if(/^#[0-9a-fA-F]{6}$/.test(v)){[_cpH,_cpS,_cpV]=hexToHsv(v);renderPicker();applyPickerColor();}
+}
+function applyPickerColor(){
+  const hex=hsvToHex(_cpH,_cpS,_cpV);
+  if(!_cpKey)return;
+  S.appearance[_cpKey]=hex;
+  const cs=byId('cs_'+_cpKey);if(cs)cs.style.background=hex;
+  S.appearance.activeTheme='custom';
+  document.querySelectorAll('.tcard').forEach(c=>c.classList.remove('on'));
+  updatePrev();
+}
+function closeColorPicker(){byId('cpopup').classList.remove('open');_cpKey=null;}
+document.addEventListener('click',e=>{
+  const popup=byId('cpopup');
+  if(popup&&popup.classList.contains('open')&&!popup.contains(e.target)&&!e.target.closest('.cswatch'))closeColorPicker();
+});
+
+function buildColorGrid(gridId, arr){
+  const g=byId(gridId); if(!g)return;
+  arr.forEach(({k,l})=>{
+    const v=S.appearance[k]||'#888888';
+    const el=document.createElement('div');el.className='citem';
+    el.innerHTML=`<div class="cswatch" id="cs_${k}" style="background:${v};aspect-ratio:1;position:relative" onclick="openColorPicker('${k}',this)"><div class="cshow" style="background:${v};position:absolute;inset:0;border-radius:7px"></div></div><div class="clbl">${l}</div>`;
+    g.appendChild(el);
+  });
+}
+function buildColors(){
+  buildColorGrid('cgridGeneral', COLORS_GENERAL);
+  buildColorGrid('cgridBtn', COLORS_BTN);
+  buildColorGrid('cgridCat', COLORS_CAT);
+  buildColorGrid('cgridCard', COLORS_CARD);
+}
+function onColor(k,v){S.appearance[k]=v;const cs=byId('cs_'+k);if(cs){cs.style.background=v;const sh=cs.querySelector('.cshow');if(sh)sh.style.background=v;}S.appearance.activeTheme='custom';document.querySelectorAll('.tcard').forEach(c=>c.classList.remove('on'));updatePrev()}
+function onBtnStyle(v){
+  S.appearance.btnStyle=v;
+  ['btnStyleSolid','btnStyleTransp','btnStyleTrans'].forEach(id=>byId(id)&&byId(id).classList.remove('on'));
+  const m={solid:'btnStyleSolid',transparent:'btnStyleTransp',translucid:'btnStyleTrans'};
+  if(m[v]&&byId(m[v]))byId(m[v]).classList.add('on');
+  updatePrev();
+}
+function onBtnEffect(v){
+  S.appearance.btnEffect=v;
+  ['btnEffectFlat','btnEffect3d'].forEach(id=>byId(id)&&byId(id).classList.remove('on'));
+  if(v==='flat'&&byId('btnEffectFlat'))byId('btnEffectFlat').classList.add('on');
+  if(v==='3d'&&byId('btnEffect3d'))byId('btnEffect3d').classList.add('on');
+  updatePrev();
+}
+function onBtnTransparent(v){
+  onBtnStyle(v?'transparent':'solid');
+}
+function onBtnBorder(v){
+  S.appearance.btnBorderWidth=parseInt(v);
+  byId('btnBorderVal').textContent=v+'px';
+  updatePrev();
+}
+function onBtnBorderColor(v){
+  S.appearance.btnBorderColor=v;
+  const cs=byId('cs_btnBorderColor');if(cs)cs.style.background=v;
+  updatePrev();
+}
+function onCatStyle(v){
+  S.appearance.catStyle=v;
+  ['catStyleSolid','catStyleTransp','catStyleTrans'].forEach(id=>byId(id)&&byId(id).classList.remove('on'));
+  const m={solid:'catStyleSolid',transparent:'catStyleTransp',translucid:'catStyleTrans'};
+  if(m[v]&&byId(m[v]))byId(m[v]).classList.add('on');
+  updatePrev();
+}
+function onCatEffect(v){
+  S.appearance.catEffect=v;
+  ['catEffectFlat','catEffect3d'].forEach(id=>byId(id)&&byId(id).classList.remove('on'));
+  if(v==='flat'&&byId('catEffectFlat'))byId('catEffectFlat').classList.add('on');
+  if(v==='3d'&&byId('catEffect3d'))byId('catEffect3d').classList.add('on');
+  updatePrev();
+}
+function onCatBorder(v){
+  S.appearance.catBorderWidth=parseInt(v);
+  byId('catBorderVal').textContent=v+'px';
+  updatePrev();
+}
+function onCatFont(v){
+  S.appearance.catFontSize=parseInt(v);
+  byId('catFontVal').textContent=v+'px';
+  updatePrev();
+}
+function onRadius(v){S.appearance.borderRadius=parseInt(v);byId('rVal').textContent=v+'px';updatePrev()}
+function onThumb(v){S.appearance.thumbRadius=parseInt(v);byId('tVal').textContent=v+'px'}
+function buildFonts(){
+  const tw=byId('fontTitOpts');
+  FONT_T.forEach(f=>{
+    const d=document.createElement('div');d.className='fopt'+(S.appearance.fontTitle===f.id?' on':'');
+    d.innerHTML=`<div><div class="fn" style="font-family:${f.id}">${f.n}</div><div class="fs" style="font-family:${f.id}">${f.s}</div></div><div class="fck">✓</div>`;
+    d.onclick=()=>{S.appearance.fontTitle=f.id;tw.querySelectorAll('.fopt').forEach(x=>x.classList.remove('on'));d.classList.add('on');updatePrev()};
+    tw.appendChild(d);
+  });
+  const bw=byId('fontBodOpts');
+  FONT_B.forEach(f=>{
+    const d=document.createElement('div');d.className='fopt'+(S.appearance.fontBody===f.id?' on':'');
+    d.innerHTML=`<div><div class="fn" style="font-family:${f.id}">${f.n}</div><div class="fs" style="font-family:${f.id}">${f.s}</div></div><div class="fck">✓</div>`;
+    d.onclick=()=>{S.appearance.fontBody=f.id;bw.querySelectorAll('.fopt').forEach(x=>x.classList.remove('on'));d.classList.add('on');updatePrev()};
+    bw.appendChild(d);
+  });
+}
+function updatePrev(){
+  const a=S.appearance,r=S.restaurant;
+  const pi=byId('ppi'),ph=byId('pph'),pt=byId('ppt'),pb=byId('ppb'),pp=byId('ppp1');
+  if(pi)pi.style.background=a.colorBg;
+  if(ph)ph.style.background=`linear-gradient(180deg,${a.colorBg}99,${a.colorBg})`;
+  if(pt){pt.style.color=a.colorAccent;pt.style.fontFamily=a.fontTitle;pt.textContent=(r.name||'Tu Restaurante').toUpperCase()}
+  if(pb)pb.style.background=a.colorBg;
+  if(pp){pp.style.background=a.colorAccent;pp.style.color=a.accentDark}
+  const rr=(a.borderRadius||14)+'px';
+  ['ppc1','ppc2'].forEach(id=>{const c=byId(id);if(c){c.style.background=a.colorCard;c.style.borderRadius=rr}});
+  ['ppn1','ppn2'].forEach(id=>{const c=byId(id);if(c){c.style.color=a.colorText;c.style.fontFamily=a.fontTitle}});
+  ['ppp2a','ppp2b'].forEach(id=>{const c=byId(id);if(c){c.style.color=a.colorAccent;c.style.fontFamily=a.fontBody}});
+}
+function setCol(c){S.appearance.defaultCols=c;syncCol(c);toast('Vista: '+(c===1?'1 columna':c===2?'2 columnas':'lista'))}
+function syncCol(c){
+  ['copt1','copt2','coptL'].forEach(id=>byId(id).classList.remove('on'));
+  const m={1:'copt1',2:'copt2','list':'coptL'};
+  if(m[c])byId(m[c]).classList.add('on');
+}
+function removeHdrImg(){S.appearance.headerImg=null;const img=byId('hdrImgPrev');img.style.display='none';img.src='';byId('hdrImgZone').querySelector('.upz-body').style.display='';byId('hdrImgPath').value='';updatePrev();toast('Imagen quitada')}
+function onHdrImgPath(v){
+  if(!v.trim()){S.appearance.headerImg=null;updatePrev();return;}
+  // Store as path reference (not base64) — menu reads it as local file
+  S.appearance.headerImg=v.trim();
+  updatePrev();
+}
+function livePreviewName(v){S.restaurant.name=v;updatePrev()}
+function livePreviewSub(v){S.restaurant.sub=v;updatePrev()}
+function onLogoSize(v){
+  S.restaurant.logoSize=parseInt(v);
+  byId('logoSizeVal').textContent=v+'px';
+}
+
+function onFontSizeTitle(v){
+  S.appearance.fontSizeTitle=parseInt(v);
+}
+
+function onFontSizeBody(v){
+  S.appearance.fontSizeBody=parseInt(v);
+}
+
+function onFontSizePrice(v){
+  S.appearance.fontSizePrice=parseInt(v);
+}
+
+function setCatTextPos(pos){
+  S.appearance.categoryTextPos=pos;
+  ['catPosLeft','catPosCenter','catPosRight'].forEach(id=>byId(id)?.classList.remove('on'));
+  const btnId='catPos'+pos.charAt(0).toUpperCase()+pos.slice(1);
+  byId(btnId)?.classList.add('on');
+  toast('Posición horizontal: '+pos);
+}
+
+function setCatTextVertical(pos){
+  S.appearance.categoryTextVertical=pos;
+  ['catVertTop','catVertMiddle','catVertBottom'].forEach(id=>byId(id)?.classList.remove('on'));
+  const btnId='catVert'+pos.charAt(0).toUpperCase()+pos.slice(1);
+  byId(btnId)?.classList.add('on');
+  toast('Posición vertical: '+pos);
+}
+
+function setLangPos(pos){
+  S.appearance.langSelectorPos=pos;
+  ['langPosTopLeft','langPosTopRight','langPosBottomLeft','langPosBottomRight'].forEach(id=>byId(id)?.classList.remove('on'));
+  const parts=pos.split('-');
+  const btnId='langPos'+parts[0].charAt(0).toUpperCase()+parts[0].slice(1)+parts[1].charAt(0).toUpperCase()+parts[1].slice(1);
+  byId(btnId)?.classList.add('on');
+}
+
+function setLangSize(val){
+  S.appearance.langSelectorSize=parseInt(val);
+}
+
+function setLangStyle(style){
+  S.appearance.langSelectorStyle=style;
+  ['langStyleRound','langStyleRounded','langStyleSquare'].forEach(id=>byId(id)?.classList.remove('on'));
+  const btnId='langStyle'+style.charAt(0).toUpperCase()+style.slice(1);
+  byId(btnId)?.classList.add('on');
+}
+
+function setLangGap(val){
+  S.appearance.langSelectorGap=parseInt(val);
+}
+
+function removeLogo(){S.restaurant.logo=null;const img=byId('logoPrev');img.style.display='none';img.src='';byId('logoZone').querySelector('.upz-body').style.display='';toast('Logo quitado')}
+
+// ══════════════════════════════════════════════
+// CAROUSEL MANAGEMENT
+// ══════════════════════════════════════════════
+const FONTS = [
+  'Georgia, serif',
+  'Times New Roman, serif',
+  'Arial, sans-serif',
+  'Helvetica, sans-serif',
+  'Verdana, sans-serif',
+  'Courier New, monospace',
+  'Playfair Display, serif',
+  'Montserrat, sans-serif',
+  'Roboto, sans-serif'
+];
+
+function setCarouselInterval(ms){
+  if(!S.carousel) S.carousel = {slides:[]};
+  // Restore saved interval
+  const savedInterval = S.carousel.interval || 3000;
+  document.querySelectorAll('input[name="carouselSpeed"]').forEach(r => {
+    r.checked = parseInt(r.value) === savedInterval;
+  });
+  S.carousel.interval = ms;
+  // Update radio buttons to match
+  document.querySelectorAll('input[name="carouselSpeed"]').forEach(r => {
+    r.checked = parseInt(r.value) === ms;
+  });
+}
+
+function renderCarouselEditor(){
+  if(!S.carousel) S.carousel = {slides:[]};
+  if(!S.carousel.slides || !S.carousel.slides.length){
+    S.carousel.slides = [{
+      type: 'main',
+      media: S.appearance?.headerImg || '',
+      isVideo: false,
+      showLogo: true,
+      showName: true,
+      showSub: true,
+      text: '',
+      textSize: 24,
+      textFont: 'Georgia, serif',
+      textPosV: 'bottom',
+      textPosH: 'center',
+      textColor: '#ffffff'
+    }];
+  }
+  
+  const container = byId('carouselSlides');
+  if(!container) return;
+  
+  container.innerHTML = '';
+  
+  S.carousel.slides.forEach((slide, index) => {
+    const card = document.createElement('div');
+    card.style.cssText = 'border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--bg)';
+    
+    // Header
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)';
+    
+    const title = document.createElement('div');
+    title.style.cssText = 'font-weight:700;font-size:13px';
+    title.textContent = `Slide ${index + 1}` + (slide.type === 'main' ? ' (Principal)' : '');
+    header.appendChild(title);
+    
+    const actions = document.createElement('div');
+    actions.style.cssText = 'display:flex;gap:6px';
+    
+    if(index > 0){
+      const upBtn = document.createElement('button');
+      upBtn.textContent = '↑';
+      upBtn.className = 'btn btn-o btn-sm';
+      upBtn.onclick = () => moveCarouselSlide(index, -1);
+      actions.appendChild(upBtn);
+    }
+    
+    if(index < S.carousel.slides.length - 1){
+      const downBtn = document.createElement('button');
+      downBtn.textContent = '↓';
+      downBtn.className = 'btn btn-o btn-sm';
+      downBtn.onclick = () => moveCarouselSlide(index, 1);
+      actions.appendChild(downBtn);
+    }
+    
+    if(S.carousel.slides.length > 1){
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '🗑';
+      delBtn.className = 'btn btn-o btn-sm';
+      delBtn.onclick = () => deleteCarouselSlide(index);
+      actions.appendChild(delBtn);
+    }
+    
+    header.appendChild(actions);
+    card.appendChild(header);
+    
+    // Media upload
+    const mediaField = document.createElement('div');
+    mediaField.style.cssText = 'margin-bottom:12px';
+    const mediaLabel = document.createElement('label');
+    mediaLabel.style.cssText = 'font-size:10px;font-weight:700;display:block;margin-bottom:4px;color:var(--mu);letter-spacing:.05em;text-transform:uppercase';
+    mediaLabel.textContent = 'Imagen o Video';
+    mediaField.appendChild(mediaLabel);
+    
+    // Preview area / drop zone
+    const previewZone = document.createElement('div');
+    previewZone.style.cssText = 'position:relative;width:100%;height:140px;border-radius:8px;overflow:hidden;cursor:pointer;border:2px dashed var(--bd);background:var(--bg2,#111)';
+    
+    if(slide.media){
+      if(slide.isVideo){
+        const video = document.createElement('video');
+        video.src = slide.media;
+        video.controls = true;
+        video.style.cssText = 'width:100%;height:100%;object-fit:cover';
+        previewZone.style.border = 'none';
+        previewZone.appendChild(video);
+      } else {
+        const img = document.createElement('img');
+        img.src = slide.media;
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+        img.onerror = () => { img.style.display='none'; placeholder.style.display='flex'; previewZone.style.border='2px dashed var(--bd)'; };
+        previewZone.style.border = 'none';
+        previewZone.appendChild(img);
+      }
+    }
+    
+    // Placeholder (visible si no hay media)
+    const placeholder = document.createElement('div');
+    placeholder.style.cssText = `display:${slide.media ? 'none' : 'flex'};flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--mu);pointer-events:none`;
+    placeholder.innerHTML = `<div style="font-size:32px">🖼️</div><div style="font-size:12px;font-weight:600">Subir imagen o video</div><div style="font-size:10px;opacity:.6">JPG, PNG, MP4 · Recomendado 1200×600px</div>`;
+    previewZone.appendChild(placeholder);
+    
+    // Overlay de cambio (visible al hover si ya hay imagen)
+    if(slide.media){
+      const changeOverlay = document.createElement('div');
+      changeOverlay.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#fff;opacity:0;transition:opacity .2s;cursor:pointer';
+      changeOverlay.innerHTML = `<div style="font-size:24px">📷</div><div style="font-size:12px;font-weight:600">Cambiar imagen</div>`;
+      changeOverlay.onmouseenter = () => changeOverlay.style.opacity = '1';
+      changeOverlay.onmouseleave = () => changeOverlay.style.opacity = '0';
+      previewZone.appendChild(changeOverlay);
+    }
+    
+    // Input file oculto
+    const mediaInput = document.createElement('input');
+    mediaInput.type = 'file';
+    mediaInput.accept = 'image/*,video/*';
+    mediaInput.style.cssText = 'display:none';
+    mediaInput.onchange = e => handleCarouselMedia(e, index);
+    previewZone.appendChild(mediaInput);
+    
+    previewZone.onclick = () => mediaInput.click();
+    mediaField.appendChild(previewZone);
+    
+    // Botón eliminar imagen
+    if(slide.media){
+      const clearBtn = document.createElement('button');
+      clearBtn.textContent = '✕ Quitar imagen';
+      clearBtn.className = 'btn btn-o btn-sm';
+      clearBtn.style.cssText = 'margin-top:6px;font-size:11px';
+      clearBtn.onclick = (e) => { e.stopPropagation(); S.carousel.slides[index].media=''; S.carousel.slides[index].isVideo=false; renderCarouselEditor(); };
+      mediaField.appendChild(clearBtn);
+    }
+    
+    card.appendChild(mediaField);
+    
+    // Text field
+    const textField = document.createElement('div');
+    textField.style.cssText = 'margin-bottom:12px';
+    const textLabel = document.createElement('label');
+    textLabel.style.cssText = 'font-size:10px;font-weight:700;display:block;margin-bottom:4px;color:var(--mu);letter-spacing:.05em;text-transform:uppercase';
+    textLabel.textContent = 'Texto (opcional)';
+    textField.appendChild(textLabel);
+    
+    const textInput = document.createElement('input');
+    textInput.type = 'text';
+    textInput.value = slide.text || '';
+    textInput.placeholder = 'Ej: Menú del día $25.000';
+    textInput.style.cssText = 'width:100%;padding:9px;border:1px solid var(--bd);border-radius:6px;font-size:14px';
+    textInput.oninput = e => S.carousel.slides[index].text = e.target.value;
+    textField.appendChild(textInput);
+    card.appendChild(textField);
+    
+    // Text controls (si hay texto o es slide principal)
+    if(slide.text || index === 0){
+      // Font
+      const fontField = document.createElement('div');
+      fontField.style.cssText = 'margin-bottom:8px';
+      const fontLabel = document.createElement('label');
+      fontLabel.style.cssText = 'font-size:10px;font-weight:700;display:block;margin-bottom:4px;color:var(--mu);letter-spacing:.05em;text-transform:uppercase';
+      fontLabel.textContent = '🔤 Tipografía';
+      fontField.appendChild(fontLabel);
+      
+      const fontSelect = document.createElement('select');
+      fontSelect.style.cssText = 'width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px;background:var(--bg)';
+      FONTS.forEach(font => {
+        const opt = document.createElement('option');
+        opt.value = font;
+        opt.textContent = font.split(',')[0];
+        opt.style.fontFamily = font;
+        if(font === (slide.textFont || 'Georgia, serif')) opt.selected = true;
+        fontSelect.appendChild(opt);
+      });
+      fontSelect.onchange = e => S.carousel.slides[index].textFont = e.target.value;
+      fontField.appendChild(fontSelect);
+      card.appendChild(fontField);
+      
+      // Size + Color (en fila)
+      const sizeColorRow = document.createElement('div');
+      sizeColorRow.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px';
+      
+      // Size
+      const sizeField = document.createElement('div');
+      const sizeLabel = document.createElement('label');
+      sizeLabel.style.cssText = 'font-size:10px;font-weight:700;display:block;margin-bottom:4px;color:var(--mu);letter-spacing:.05em;text-transform:uppercase';
+      sizeLabel.textContent = '📏 Tamaño';
+      sizeField.appendChild(sizeLabel);
+      
+      const sizeInput = document.createElement('input');
+      sizeInput.type = 'number';
+      sizeInput.min = '12';
+      sizeInput.max = '72';
+      sizeInput.value = slide.textSize || 24;
+      sizeInput.style.cssText = 'width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;font-size:13px';
+      sizeInput.oninput = e => S.carousel.slides[index].textSize = parseInt(e.target.value);
+      sizeField.appendChild(sizeInput);
+      sizeColorRow.appendChild(sizeField);
+      
+      // Color
+      const colorField = document.createElement('div');
+      const colorLabel = document.createElement('label');
+      colorLabel.style.cssText = 'font-size:10px;font-weight:700;display:block;margin-bottom:4px;color:var(--mu);letter-spacing:.05em;text-transform:uppercase';
+      colorLabel.textContent = '🎨 Color';
+      colorField.appendChild(colorLabel);
+      
+      const colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.value = slide.textColor || '#ffffff';
+      colorInput.style.cssText = 'width:100%;height:38px;border:1px solid var(--bd);border-radius:6px;cursor:pointer';
+      colorInput.oninput = e => S.carousel.slides[index].textColor = e.target.value;
+      colorField.appendChild(colorInput);
+      sizeColorRow.appendChild(colorField);
+      
+      card.appendChild(sizeColorRow);
+      
+      // Position Vertical
+      const posVField = document.createElement('div');
+      posVField.style.cssText = 'margin-bottom:8px';
+      const posVLabel = document.createElement('label');
+      posVLabel.style.cssText = 'font-size:10px;font-weight:700;display:block;margin-bottom:6px;color:var(--mu);letter-spacing:.05em;text-transform:uppercase';
+      posVLabel.textContent = '📍 Posición Vertical';
+      posVField.appendChild(posVLabel);
+      
+      const posVBtns = document.createElement('div');
+      posVBtns.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px';
+      
+      ['top', 'center', 'bottom'].forEach(pos => {
+        const btn = document.createElement('button');
+        btn.textContent = pos === 'top' ? 'Arriba' : pos === 'center' ? 'Centro' : 'Abajo';
+        btn.className = 'btn btn-sm ' + ((slide.textPosV || 'bottom') === pos ? 'btn-p' : 'btn-o');
+        btn.onclick = () => {
+          S.carousel.slides[index].textPosV = pos;
+          renderCarouselEditor();
+        };
+        posVBtns.appendChild(btn);
+      });
+      posVField.appendChild(posVBtns);
+      card.appendChild(posVField);
+      
+      // Position Horizontal
+      const posHField = document.createElement('div');
+      posHField.style.cssText = 'margin-bottom:8px';
+      const posHLabel = document.createElement('label');
+      posHLabel.style.cssText = 'font-size:10px;font-weight:700;display:block;margin-bottom:6px;color:var(--mu);letter-spacing:.05em;text-transform:uppercase';
+      posHLabel.textContent = '📍 Posición Horizontal';
+      posHField.appendChild(posHLabel);
+      
+      const posHBtns = document.createElement('div');
+      posHBtns.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px';
+      
+      ['left', 'center', 'right'].forEach(pos => {
+        const btn = document.createElement('button');
+        btn.textContent = pos === 'left' ? 'Izquierda' : pos === 'center' ? 'Centro' : 'Derecha';
+        btn.className = 'btn btn-sm ' + ((slide.textPosH || 'center') === pos ? 'btn-p' : 'btn-o');
+        btn.onclick = () => {
+          S.carousel.slides[index].textPosH = pos;
+          renderCarouselEditor();
+        };
+        posHBtns.appendChild(btn);
+      });
+      posHField.appendChild(posHBtns);
+      card.appendChild(posHField);
+    }
+    
+    // Checkboxes (solo slide principal)
+    if(index === 0){
+      const checksDiv = document.createElement('div');
+      checksDiv.style.cssText = 'display:flex;flex-direction:column;gap:6px;font-size:13px;padding-top:8px;border-top:1px solid var(--bd);margin-top:8px';
+      
+      const logoCheck = createCheckbox('Mostrar logo', slide.showLogo !== false, val => S.carousel.slides[index].showLogo = val);
+      const nameCheck = createCheckbox('Mostrar nombre', slide.showName !== false, val => S.carousel.slides[index].showName = val);
+      const subCheck = createCheckbox('Mostrar eslogan', slide.showSub !== false, val => S.carousel.slides[index].showSub = val);
+      
+      checksDiv.appendChild(logoCheck);
+      checksDiv.appendChild(nameCheck);
+      checksDiv.appendChild(subCheck);
+      card.appendChild(checksDiv);
+    }
+    
+    container.appendChild(card);
+  });
+}
+
+function createCheckbox(label, checked, onChange){
+  const div = document.createElement('label');
+  div.style.cssText = 'display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none';
+  
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.checked = checked;
+  input.onchange = e => onChange(e.target.checked);
+  input.style.cssText = 'width:18px;height:18px;cursor:pointer';
+  
+  const span = document.createElement('span');
+  span.textContent = label;
+  
+  div.appendChild(input);
+  div.appendChild(span);
+  return div;
+}
+
+async function handleCarouselMedia(e, index){
+  const file = e.target.files[0];
+  if(!file) return;
+  
+  try {
+    const result = await uploadMedia(file, 'carousel');
+    S.carousel.slides[index].media = result.path;
+    S.carousel.slides[index].isVideo = result.isVideo;
+    renderCarouselEditor();
+    toast(`✅ ${result.isVideo ? 'Video' : 'Imagen'} cargada`);
+  } catch(err) {
+    console.error('Error:', err);
+    toast('❌ Error subiendo archivo');
+  }
+}
+
+function addCarouselSlide(){
+  if(!S.carousel) S.carousel = {slides:[]};
+  if(S.carousel.slides.length >= 5){
+    toast('⚠️ Máximo 5 slides');
+    return;
+  }
+  
+  S.carousel.slides.push({
+    type: 'promo',
+    media: '',
+    isVideo: false,
+    text: '',
+    textSize: 28,
+    textFont: 'Georgia, serif',
+    textPosV: 'center',
+    textPosH: 'center',
+    textColor: '#ffffff'
+  });
+  renderCarouselEditor();
+  toast('✅ Slide agregado');
+}
+
+function deleteCarouselSlide(index){
+  if(S.carousel.slides.length <= 1){
+    toast('⚠️ Debe haber al menos 1 slide');
+    return;
+  }
+  S.carousel.slides.splice(index, 1);
+  renderCarouselEditor();
+  toast('✅ Slide eliminado');
+}
+
+function moveCarouselSlide(index, direction){
+  const newIndex = index + direction;
+  if(newIndex < 0 || newIndex >= S.carousel.slides.length) return;
+  
+  [S.carousel.slides[index], S.carousel.slides[newIndex]] = [S.carousel.slides[newIndex], S.carousel.slides[index]];
+  
+  renderCarouselEditor();
+  toast('✅ Orden cambiado');
+}
+
+// ══════════════════════════════════════════════
+// IMPORT EXCEL / CSV
+// ══════════════════════════════════════════════
+function handleFile(file){
+  if(!file)return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(!['xlsx','xls','csv','ods'].includes(ext)){setImpSt('err','❌ Formato no compatible. Usá .xlsx, .xls o .csv');return}
+  setImpSt('load','⏳ Procesando <b>'+file.name+'</b>...');setPb(0);
+
+  const rdr=new FileReader();
+  rdr.onerror=()=>setImpSt('err','❌ No se pudo leer el archivo. Intentá de nuevo.');
+  rdr.onload=e=>{
+    try{
+      setPb(40);
+      let wb;
+      if(ext==='csv'){
+        wb=XLSX.read(e.target.result,{type:'string',codepage:65001});
+      } else {
+        wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      }
+      setPb(65);
+
+      // find the right sheet
+      const sheetName=wb.SheetNames.find(n=>n.toLowerCase().includes('producto'))||wb.SheetNames[0];
+      const sheet=wb.Sheets[sheetName];
+      if(!sheet){setImpSt('err','❌ No se encontró ninguna hoja de productos');return}
+
+      let rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:'',raw:false});
+
+      // find header row (look for 'nombre' or 'name' or 'categoria')
+      let hIdx=0;
+      for(let i=0;i<Math.min(15,rows.length);i++){
+        const s=rows[i].map(c=>String(c)).join(',').toLowerCase();
+        if(s.includes('nombre')||s.includes('name')||s.includes('categoria')||s.includes('category')){hIdx=i;break}
+      }
+
+      const headers=rows[hIdx].map(h=>norm(String(h)));
+      const products=rows.slice(hIdx+1)
+        .filter(r=>r.some(c=>String(c||'').trim()!==''))
+        .map((row,i)=>{
+          const o={};
+          headers.forEach((h,j)=>{if(h)o[h]=String(row[j]||'').trim()});
+          return rowToProd(o,i+1);
+        })
+        .filter(p=>p.name&&p.cat);
+
+      // try to read restaurant config from a second sheet
+      let restCfg=null;
+      const rSheet=wb.Sheets['Restaurante']||wb.Sheets['Restaurant']||wb.Sheets['Config'];
+      if(rSheet){
+        const rr=XLSX.utils.sheet_to_json(rSheet,{header:1,defval:'',raw:false});
+        restCfg={};
+        rr.forEach(r=>{if(r[0]&&r[1])restCfg[norm(String(r[0]))]=String(r[1]).trim()});
+      }
+
+      setPb(100);
+      if(products.length===0){setImpSt('err','❌ No se encontraron productos válidos. Verificá que las columnas "nombre" y "categoria" existan.');return}
+
+      importedData={products,restCfg};
+      showImpPrev(products);
+      setImpSt('ok','✅ <b>'+products.length+' productos</b> detectados. Revisá y aplicá.');
+    }catch(err){
+      console.error(err);
+      setImpSt('err','❌ Error al procesar: '+err.message+'. Asegurate de que el archivo no esté protegido.');
+    }
+    setTimeout(()=>byId('pbarW').style.display='none',700);
+  };
+
+  if(ext==='csv') rdr.readAsText(file,'UTF-8');
+  else rdr.readAsArrayBuffer(file);
+}
+
+function norm(s){
+  return String(s).toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,'_')
+    .replace(/[^a-z0-9_]/g,'')
+    .replace(/_+/g,'_')
+    .replace(/^_|_$/g,'');
+}
+
+function gv(o,...keys){
+  for(const k of keys){
+    const nk=norm(k);
+    const v=o[nk]!==undefined?o[nk]:o[k];
+    if(v!==undefined&&String(v).trim()!=='')return String(v).trim();
+  }
+  return'';
+}
+
+function rowToProd(o,i){
+  const cat=gv(o,'categoria','category','cat','seccion','section','categoría');
+  const name=gv(o,'nombre','name','plato','producto','item','titulo','title');
+  const desc=gv(o,'descripcion_corta','descripcion corta','desc_corta','descripcion','description','desc','descripción');
+  const descL=gv(o,'descripcion_larga','descripcion larga','desc_larga','long_desc','descripcion completa','descripción larga');
+  const precio=gv(o,'precio','price','costo','valor','importe');
+  const badge=gv(o,'badge','etiqueta','label','destacado','especial');
+  const tagsR=gv(o,'tags','etiquetas','labels','ingredientes');
+  const video=gv(o,'archivo_video','video','video_url','archivo de video');
+  const imgF=gv(o,'archivo_imagen','imagen','image','foto','archivo de imagen');
+  const imgU=gv(o,'url_imagen','image_url','foto_url','img_url','imagen_url','url');
+  const disp=gv(o,'disponible','available','activo','active');
+  const orden=gv(o,'orden','order','posicion','posición');
+  const tags=tagsR?tagsR.split(/[,;|\/]/).map(t=>t.trim()).filter(Boolean):[];
+  const rawPrice=precio.replace(/\./g,'').replace(',','.').replace(/[^\d.]/g,'');
+  return{
+    id:Date.now()+i*17,cat,name,
+    desc:desc||descL.slice(0,120),
+    descLong:descL||desc,
+    price:parseFloat(rawPrice)||0,
+    badge:badge||null,tags,
+    video:video||null,
+    img:imgF||imgU||null,
+    available:!disp||!['no','false','0','inactivo','inactive'].includes(disp.toLowerCase()),
+    order:parseInt(orden)||i
+  };
+}
+
+function showImpPrev(products){
+  byId('impPrev').style.display='block';
+  const cats=[...new Set(products.map(p=>p.cat))];
+  byId('impStats').innerHTML=[
+    ['📦',products.length,'prods'],
+    ['📂',cats.length,'cats'],
+    ['🎬',products.filter(p=>p.video).length,'video'],
+    ['🖼️',products.filter(p=>p.img).length,'imgs']
+  ].map(([ico,n,l])=>`<div style="background:var(--gb);border:1px solid #f5d79e;border-radius:7px;padding:5px 9px;font-size:12px;color:var(--gd)"><b>${ico} ${n}</b> ${l}</div>`).join('');
+  byId('ptable').innerHTML=`<thead><tr><th>#</th><th>Categoría</th><th>Nombre</th><th>Precio</th><th>Media</th></tr></thead><tbody>${products.map((p,i)=>`<tr><td>${i+1}</td><td><span class="cchip">${p.cat}</span></td><td>${p.featured?'<span style="color:var(--ac);font-size:11px">⭐</span> ':''}<b>${p.name}</b>${p.available===false?' <span style="color:#e74c3c;font-size:11px">● Oculto</span>':''}</td><td>${S.restaurant.currency}${p.price.toLocaleString()}</td><td>${p.video?'🎬':p.img?'🖼️':'—'}</td></tr>`).join('')}</tbody>`;
+  byId('impPrev').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function applyImp(){
+  if(!importedData)return;
+  const{products,restCfg}=importedData;
+  S.products=products;
+  S.categories=[...new Set(products.map(p=>p.cat))];
+  if(restCfg){
+    const rm={nombre:'name',eslogan:'sub',moneda_default:'currency',cantidad_mesas:'tables',whatsapp_numero:'whatsapp'};
+    const am={color_fondo:'colorBg',color_acento:'colorAccent',color_texto:'colorText',color_tarjetas:'colorCard'};
+    for(const[k,fk]of Object.entries(rm)){const v=restCfg[norm(k)];if(v){if(fk==='tables')S.restaurant.tables=parseInt(v)||10;else S.restaurant[fk]=v}}
+    for(const[k,fk]of Object.entries(am)){const v=restCfg[norm(k)];if(v)S.appearance[fk]=v}
+  }
+  saveAll(false);loadForms();renderProds();renderDash();
+  byId('impPrev').style.display='none';importedData=null;
+  toast('✅ '+products.length+' productos importados');
+  setTimeout(()=>goPage('carta'),600);
+}
+function cancelImp(){importedData=null;byId('impPrev').style.display='none';setImpSt('','');toast('Cancelado')}
+function setImpSt(type,msg){const el=byId('impSt');el.className='imp-st'+(type==='ok'?' ist-ok':type==='err'?' ist-err':type==='load'?' ist-load':'');el.innerHTML=msg}
+function setPb(p){byId('pbarW').style.display='block';byId('pbar').style.width=p+'%'}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+function renderDash(){
+  // Banner de configuración inicial
+  const isNewSetup=!S.restaurant.name||!S.products.length;
+  const setupBanner=byId('setupBanner');
+  if(setupBanner) setupBanner.style.display=isNewSetup?'block':'none';
+
+  byId('statsGrid').innerHTML=[
+    [S.products.length,'🍽️ Productos'],
+    [[...new Set(S.products.map(p=>p.cat))].length,'📂 Categorías'],
+    [S.restaurant.tables,'🪑 Mesas'],
+    [S.products.filter(p=>p.video||p.img).length,'🎬 Con media'],
+  ].map(([n,l])=>`<div class="stat"><div class="stat-n">${n}</div><div class="stat-l">${l}</div></div>`).join('');
+  byId('recentList').innerHTML=S.products.slice(-4).reverse().map(p=>`
+    <div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--bd)">
+      <div class="pthumb" style="width:44px;height:44px;border-radius:8px;font-size:18px">
+        ${p.img?`<img src="${p.img}" alt="" onerror="this.style.display='none'">`:'🍽️'}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
+        <div style="font-size:11px;color:var(--mu)">${p.cat}</div>
+      </div>
+      <div style="font-weight:700;font-size:13px;color:var(--gd);flex-shrink:0">${S.restaurant.currency}${p.price.toLocaleString()}</div>
+    </div>`).join('')||'<div style="color:var(--mu);font-size:13px;padding:16px;text-align:center">Sin productos todavía.</div>';
+}
+
+// ══════════════════════════════════════════════
+// CATEGORIES
+// ══════════════════════════════════════════════
+function renderCatList(){
+  const container = byId('catList');
+  container.innerHTML = S.categories.map((c,i) => {
+    const hasImg = S.categoryImages && S.categoryImages[c];
+    const esc = c.replace(/'/g,"\\'");
+    const sched = (S.categorySchedules && S.categorySchedules[c]) || {};
+    const scheduleEnabled = !!sched.enabled;
+    const scheduleFrom = sched.from || '12:00';
+    const scheduleTo = sched.to || '15:00';
+    return `
+    <div class="citem" draggable="true" data-idx="${i}" style="display:flex;flex-direction:column;gap:8px;padding:12px;border:1.5px solid var(--bd);border-radius:10px;margin-bottom:10px;transition:opacity .2s">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="dh" style="cursor:grab;font-size:18px;color:var(--mu);user-select:none" title="Arrastrar para reordenar">⠿</span>
+        <input value="${c}" onchange="updateCatName(${i}, this.value)" style="flex:1">
+        <button class="btn btn-o btn-sm" onclick="moveCat(${i},-1)" ${i===0?'disabled':''} style="padding:4px 8px;min-width:28px" title="Subir">↑</button>
+        <button class="btn btn-o btn-sm" onclick="moveCat(${i},1)" ${i===S.categories.length-1?'disabled':''} style="padding:4px 8px;min-width:28px" title="Bajar">↓</button>
+        <button class="ibtn" onclick="removeCat(${i})">🗑</button>
+      </div>
+      <div style="margin-top:6px">
+        <div style="font-size:11px;color:var(--mu);margin-bottom:6px;font-weight:600">📷 Imagen de categoría (1200 × 200px)</div>
+        ${hasImg ? `
+          <div style="position:relative;width:100%;aspect-ratio:6/1;border-radius:8px;overflow:hidden;margin-bottom:8px">
+            <img src="${S.categoryImages[c]}" style="width:100%;height:100%;object-fit:cover">
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:white;font-size:20px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.8)">${c}</div>
+          </div>
+          <button class="btn btn-o btn-sm" onclick="removeCatImage('${esc}')">✕ Quitar imagen</button>
+        ` : `
+          <input type="file" id="catImg_${i}" accept="image/jpeg,image/png,image/webp" onchange="uploadCatImage(${i}, this)" style="display:none">
+          <button class="btn btn-o btn-sm" onclick="byId('catImg_${i}').click()">📷 Subir imagen</button>
+        `}
+        <div style="font-size:10px;color:var(--mu);margin-top:4px">Recomendado: 1200×200px, formato panorámico</div>
+      </div>
+      
+      <div style="padding-top:8px;border-top:1px solid var(--bd);margin-top:8px">
+        <div style="font-size:11px;color:var(--mu);margin-bottom:6px;font-weight:600">🕐 Horario de visibilidad (opcional)</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+            <input type="checkbox" ${scheduleEnabled?'checked':''} onchange="setCatSchedule(${i}, 'enabled', this.checked)" style="width:16px;height:16px;accent-color:var(--ac)">
+            <span>Activar horario</span>
+          </label>
+          <div style="display:flex;align-items:center;gap:6px;${scheduleEnabled?'':'opacity:.4;pointer-events:none'}">
+            <input type="time" value="${scheduleFrom}" onchange="setCatSchedule(${i}, 'from', this.value)" style="background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:4px 8px;color:var(--tx);font-size:13px">
+            <span style="color:var(--mu)">a</span>
+            <input type="time" value="${scheduleTo}" onchange="setCatSchedule(${i}, 'to', this.value)" style="background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:4px 8px;color:var(--tx);font-size:13px">
+          </div>
+        </div>
+        ${scheduleEnabled?`<div style="font-size:11px;color:var(--mu);margin-top:4px">Solo visible entre ${scheduleFrom} y ${scheduleTo}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Drag & drop reorder
+  let dragIdx = null;
+  container.querySelectorAll('.citem').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      dragIdx = parseInt(el.dataset.idx);
+      setTimeout(() => el.style.opacity = '0.4', 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', () => { el.style.opacity = '1'; dragIdx = null; });
+    el.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; el.style.borderColor = 'var(--ac)'; });
+    el.addEventListener('dragleave', () => { el.style.borderColor = 'var(--bd)'; });
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      el.style.borderColor = 'var(--bd)';
+      const dropIdx = parseInt(el.dataset.idx);
+      if(dragIdx === null || dragIdx === dropIdx) return;
+      const moved = S.categories.splice(dragIdx, 1)[0];
+      S.categories.splice(dropIdx, 0, moved);
+      renderCatList();
+      renderProds();
+      toast('✅ Orden actualizado');
+    });
+  });
+}
+
+function moveCat(i, dir){
+  const j = i + dir;
+  if(j < 0 || j >= S.categories.length) return;
+  [S.categories[i], S.categories[j]] = [S.categories[j], S.categories[i]];
+  renderCatList();
+  renderProds();
+}
+
+function setCatSchedule(i, field, value){
+  const catName = S.categories[i];
+  if(!S.categorySchedules) S.categorySchedules = {};
+  if(!S.categorySchedules[catName]) S.categorySchedules[catName] = {};
+  S.categorySchedules[catName][field] = value;
+  renderCatList();
+}
+
+function updateCatName(i, newName){
+  const oldName = S.categories[i];
+  // Si hay imagen, mover la imagen al nuevo nombre
+  if(S.categoryImages && S.categoryImages[oldName]){
+    S.categoryImages[newName] = S.categoryImages[oldName];
+    delete S.categoryImages[oldName];
+  }
+  S.categories[i] = newName;
+  // Actualizar productos que usan esta categoría
+  S.products.forEach(p => {
+    if(p.cat === oldName) p.cat = newName;
+  });
+  renderCatList();
+  renderProds();
+}
+
+function uploadCatImage(index, input){
+  const file = input.files[0];
+  if(!file) return;
+  
+  if(file.size > 2 * 1024 * 1024){
+    toast('⚠️ Imagen muy grande. Máximo 2MB');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const catName = S.categories[index];
+    if(!S.categoryImages) S.categoryImages = {};
+    S.categoryImages[catName] = e.target.result;
+    renderCatList();
+    toast('✅ Imagen cargada');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeCatImage(catName){
+  if(S.categoryImages && S.categoryImages[catName]){
+    delete S.categoryImages[catName];
+    renderCatList();
+    toast('Imagen eliminada');
+  }
+}
+
+function addCat(){S.categories.push('Nueva categoría');renderCatList();renderProds()}
+function removeCat(i){if(S.categories.length<=1&&S.products.some(p=>p.cat===S.categories[0])){toast('⚠️ Hay productos en esta categoría');return}const catName=S.categories[i];if(S.categoryImages&&S.categoryImages[catName])delete S.categoryImages[catName];S.categories.splice(i,1);renderCatList();renderProds()}
+
+// ══════════════════════════════════════════════
+// AUTOMATIC TRANSLATION
+// ══════════════════════════════════════════════
+async function translateText(text, targetLang='en'){
+  if(!text || text.trim()==='') return '';
+  
+  try{
+    const url=`https://translate.googleapis.com/translate_a/single?client=gtx&sl=es&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+    const response=await fetch(url);
+    const json=await response.json();
+    
+    if(json && json[0] && json[0][0] && json[0][0][0]){
+      return json[0].map(item=>item[0]).join('');
+    }
+    return text; // Si falla, devuelve el original
+  }catch(err){
+    console.error('Translation error:',err);
+    return text; // Si falla, devuelve el original
+  }
+}
+
+async function translateAll(){
+  const btn=byId('translateBtn');
+  const progress=byId('translateProgress');
+  const bar=byId('translateBar');
+  
+  btn.disabled=true;
+  btn.textContent='⏳ Traduciendo...';
+  progress.style.display='block';
+  
+  try{
+    const totalItems=S.products.length+S.categories.length;
+    let translated=0;
+    
+    // Traducir categorías
+    for(let cat of S.categories){
+      if(!S.categoryTranslations) S.categoryTranslations={};
+      if(!S.categoryTranslationsPT) S.categoryTranslationsPT={};
+      
+      if(!S.categoryTranslations[cat]){
+        S.categoryTranslations[cat]=await translateText(cat, 'en');
+      }
+      if(!S.categoryTranslationsPT[cat]){
+        S.categoryTranslationsPT[cat]=await translateText(cat, 'pt');
+      }
+      
+      translated++;
+      bar.style.width=`${(translated/totalItems)*100}%`;
+      await new Promise(r=>setTimeout(r,150)); // Pequeña pausa
+    }
+    
+    // Traducir productos
+    for(let prod of S.products){
+      if(!prod.translations) prod.translations={};
+      if(!prod.translations.pt) prod.translations.pt={};
+      
+      // Traducir nombre (inglés)
+      if(!prod.translations.name){
+        prod.translations.name=await translateText(prod.name, 'en');
+      }
+      
+      // Traducir nombre (portugués)
+      if(!prod.translations.pt.name){
+        prod.translations.pt.name=await translateText(prod.name, 'pt');
+      }
+      
+      // Traducir descripción corta (inglés)
+      if(prod.desc && !prod.translations.desc){
+        prod.translations.desc=await translateText(prod.desc, 'en');
+      }
+      
+      // Traducir descripción corta (portugués)
+      if(prod.desc && !prod.translations.pt.desc){
+        prod.translations.pt.desc=await translateText(prod.desc, 'pt');
+      }
+      
+      // Traducir descripción larga (inglés)
+      if(prod.descLong && !prod.translations.descLong){
+        prod.translations.descLong=await translateText(prod.descLong, 'en');
+      }
+      
+      // Traducir descripción larga (portugués)
+      if(prod.descLong && !prod.translations.pt.descLong){
+        prod.translations.pt.descLong=await translateText(prod.descLong, 'pt');
+      }
+      
+      translated++;
+      bar.style.width=`${(translated/totalItems)*100}%`;
+      await new Promise(r=>setTimeout(r,150)); // Pequeña pausa entre requests
+    }
+    
+    toast('✅ Traducción completada');
+    updateTranslationStatus();
+    
+  }catch(err){
+    toast('❌ Error en la traducción');
+    console.error(err);
+  }finally{
+    btn.disabled=false;
+    btn.textContent='🇬🇧 Traducir todo al inglés';
+    setTimeout(()=>{
+      progress.style.display='none';
+      bar.style.width='0%';
+    },1000);
+  }
+}
+
+function updateTranslationStatus(){
+  if(!S.categoryTranslations) S.categoryTranslations={};
+  
+  const catsTranslated=S.categories.filter(c=>S.categoryTranslations[c]).length;
+  const prodsTranslated=S.products.filter(p=>p.translations&&p.translations.name).length;
+  
+  const totalCats=S.categories.length;
+  const totalProds=S.products.length;
+  
+  if(catsTranslated>0||prodsTranslated>0){
+    byId('translationStatus').style.display='block';
+    byId('translationStats').innerHTML=`
+      Categorías: ${catsTranslated}/${totalCats} traducidas<br>
+      Productos: ${prodsTranslated}/${totalProds} traducidos
+    `;
+  }
+}
+
+// ══════════════════════════════════════════════
+// PRODUCTS LIST
+// ══════════════════════════════════════════════
+function updateBadge(){
+  const n=S.products.length;
+  byId('prodCount').textContent=n+' producto'+(n!==1?'s':'');
+  const b=byId('navBadge');b.textContent=n;b.style.display=n>0?'block':'none';
+  const sel=byId('filtCat'),prev=sel.value;
+  sel.innerHTML='<option value="">Todas</option>'+S.categories.map(c=>`<option value="${c}"${prev===c?' selected':''}>${c}</option>`).join('');
+}
+function renderProds(search=''){
+  updateBadge();
+  const fc=byId('filtCat')?.value||'';
+  let prods=S.products;
+  if(search)prods=prods.filter(p=>(p.name+p.cat).toLowerCase().includes(search.toLowerCase()));
+  if(fc)prods=prods.filter(p=>p.cat===fc);
+  byId('prodList').innerHTML=prods.length?prods.map(p=>`
+    <div class="pitem">
+      <div class="pthumb">
+        ${p.img?`<img src="${p.img}" alt="${p.name}" onerror="this.style.display='none'">`:'🍽️'}
+      </div>
+      <div class="pinfo">
+        <div class="pname">${p.name}</div>
+        <div class="pmeta">${p.cat} · ${S.restaurant.currency}${p.price.toLocaleString()}</div>
+        ${p.video?`<div class="pvid">🎬 ${p.video}</div>`:p.img?`<div class="pvid" style="color:#2d6a4f">🖼️ Imagen OK</div>`:''}
+      </div>
+      <div class="pacts">
+        <button class="ibtn" onclick="editProd(${p.id})">✏️</button>
+        <button class="ibtn" onclick="deleteProd(${p.id})" style="color:var(--rd)">🗑</button>
+      </div>
+    </div>`).join(''):'<div style="color:var(--mu);font-size:13px;padding:20px;text-align:center">Sin productos. Importá o agregá uno.</div>';
+}
+
+// ══════════════════════════════════════════════
+// PRODUCT MODAL
+// ══════════════════════════════════════════════
+function openModal(id=null){
+  editingId=id;curTags=[];
+  ['pName','pDescS','pDescL','pPrice','pBadge','pImgUrl','pVideoUrl'].forEach(f=>{const el=byId(f);if(el)el.value=''});
+  byId('pFeatured').checked=false;
+  byId('pAvailable').checked=true;;
+
+  // reset image
+  const img=byId('pImgPrev');img.style.display='none';img.src='';delete img.dataset.b64;
+  byId('piup').querySelector('.piup-hint').style.display='';
+
+  // reset video
+  const vid=byId('pVidPrev');
+  if(vid.dataset.objUrl){URL.revokeObjectURL(vid.dataset.objUrl);delete vid.dataset.objUrl}
+  vid.style.display='none';vid.src='';delete vid.dataset.b64;delete vid.dataset.fname;
+  byId('viupHint').style.display='';
+  byId('viupBar').classList.remove('show');
+  byId('mediaWarn').style.display='none';
+
+  renderTags();
+  byId('pCat').innerHTML=S.categories.map(c=>`<option>${c}</option>`).join('');
+  if(id){
+    const p=S.products.find(x=>x.id===id);if(!p)return;
+    byId('modalTitle').textContent='Editar producto';
+    byId('pName').value=p.name||'';
+    byId('pDescS').value=p.desc||'';
+    byId('pDescL').value=p.descLong||'';
+    byId('pPrice').value=p.price||0;
+    byId('pBadge').value=p.badge||'';
+    byId('pCat').value=p.cat||'';
+    byId('pFeatured').checked=!!p.featured;
+    byId('pAvailable').checked=p.available!==false;
+    curTags=[...(p.tags||[])];renderTags();
+    // restore image
+    if(p.img){
+      img.src=p.img;img.style.display='block';img.dataset.b64=p.img;
+      byId('piup').querySelector('.piup-hint').style.display='none';
+    }
+    if(p.img&&p.img.startsWith('http')) byId('pImgUrl').value=p.img;
+    // restore video
+    if(p.video){
+      if(p.video.startsWith('data:')||p.video.startsWith('blob:')){
+        vid.src=p.video;vid.style.display='block';vid.dataset.b64=p.video;
+        byId('viupHint').style.display='none';
+        byId('viupName').textContent='Video guardado';
+        byId('viupBar').classList.add('show');
+      } else {
+        // path/url reference
+        byId('pVideoUrl').value=p.video;
+      }
+    }
+  }else{
+    byId('modalTitle').textContent='Nuevo producto';
+  }
+  byId('prodModal').classList.add('open');
+}
+function editProd(id){openModal(id)}
+function closeModal(){byId('prodModal').classList.remove('open');editingId=null}
+
+function removeVideo(e){
+  e.stopPropagation();
+  const vid=byId('pVidPrev');
+  if(vid.dataset.objUrl){URL.revokeObjectURL(vid.dataset.objUrl);delete vid.dataset.objUrl}
+  vid.pause();vid.src='';vid.style.display='none';
+  delete vid.dataset.b64;delete vid.dataset.fname;
+  byId('viupHint').style.display='';
+  byId('viupBar').classList.remove('show');
+  byId('pVideoUrl').value='';
+  byId('mediaWarn').style.display='none';
+  toast('Video quitado');
+}
+
+function saveProd(){
+  const name=byId('pName').value.trim();
+  const price=byId('pPrice').value;
+  const cat=byId('pCat').value;
+  if(!name){toast('⚠️ Falta el nombre');return}
+  if(!price){toast('⚠️ Falta el precio');return}
+  if(!cat){toast('⚠️ Falta la categoría');return}
+
+  // Image: uploaded base64 > existing (on edit) > external URL
+  const imgEl=byId('pImgPrev');
+  const imgB64=imgEl.dataset.b64||null;
+  const imgUrl=byId('pImgUrl').value.trim()||null;
+  let img=imgB64;
+  if(!img&&editingId){const ex=S.products.find(p=>p.id===editingId);img=ex?.img||null}
+  if(!img)img=imgUrl;
+
+  // Video: uploaded base64 > path/URL field > existing (on edit)
+  const vidEl=byId('pVidPrev');
+  const vidB64=vidEl.dataset.b64||null;  // base64 data URI
+  const vidUrlField=byId('pVideoUrl').value.trim()||null;
+  let video=vidB64||vidUrlField;
+  if(!video&&editingId){const ex=S.products.find(p=>p.id===editingId);video=ex?.video||null}
+
+  const prod={
+    id:editingId||Date.now(),name,cat,
+    desc:byId('pDescS').value.trim(),
+    descLong:byId('pDescL').value.trim(),
+    price:Number(price),
+    badge:byId('pBadge').value.trim()||null,
+    video,tags:[...curTags],img,
+    featured:byId('pFeatured').checked,
+    available:byId('pAvailable').checked,
+    order:editingId?S.products.find(p=>p.id===editingId)?.order||99:S.products.length+1
+  };
+  if(editingId){const i=S.products.findIndex(p=>p.id===editingId);if(i>=0)S.products[i]=prod;toast('✅ Producto actualizado')}
+  else{S.products.push(prod);toast('✅ Producto agregado')}
+  closeModal();renderProds();renderDash();
+}
+function deleteProd(id){if(!confirm('¿Eliminar este producto?'))return;S.products=S.products.filter(p=>p.id!==id);renderProds();renderDash();toast('🗑 Eliminado')}
+
+function handleTag(e){
+  if(e.key==='Enter'||e.key===','){
+    e.preventDefault();
+    const v=e.target.value.trim().replace(/,$/,'');
+    if(v&&!curTags.includes(v)){curTags.push(v);renderTags()}
+    e.target.value='';
+  }
+}
+function renderTags(){
+  const disp=byId('tagsDisp');
+  disp.innerHTML=curTags.map((t,i)=>`<span class="tchip">${t}<button onclick="curTags.splice(${i},1);renderTags()">×</button></span>`).join('');
+}
+
+// ══════════════════════════════════════════════
+
+// ══════════════════════════════════════════════
+// ANALYTICS
+// ══════════════════════════════════════════════
+function renderAnalytics(){
+  const ANALYTICS_KEY = 'menuos_analytics';
+  const data = JSON.parse(localStorage.getItem(ANALYTICS_KEY)||'{}');
+  const wrap = byId('analyticsContent');
+  
+  const views = data.views || {};
+  const cats = data.cats || {};
+  const mesas = data.mesas || {};
+  
+  const totalViews = Object.values(views).reduce((s,v)=>s+v.count,0);
+  const totalCatTaps = Object.values(cats).reduce((s,v)=>s+v,0);
+  
+  if(!totalViews && !totalCatTaps){
+    wrap.innerHTML='<div style="text-align:center;padding:40px;color:var(--mu)">Sin datos aún.<br>Los datos se registran cuando los clientes usan el menú.</div>';
+    return;
+  }
+  
+  // Top productos
+  const sortedProds = Object.entries(views)
+    .sort((a,b)=>b[1].count-a[1].count)
+    .slice(0,10);
+  
+  // Top categorías
+  const sortedCats = Object.entries(cats)
+    .sort((a,b)=>b[1]-a[1]);
+
+  // Top mesas
+  const sortedMesas = Object.entries(mesas)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,10);
+
+  let html = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:28px;font-weight:900;color:var(--ac)">${totalViews}</div>
+        <div style="font-size:12px;color:var(--mu);margin-top:2px">Vistas de productos</div>
+      </div>
+      <div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:28px;font-weight:900;color:var(--ac)">${totalCatTaps}</div>
+        <div style="font-size:12px;color:var(--mu);margin-top:2px">Taps en categorías</div>
+      </div>
+    </div>`;
+
+  if(sortedProds.length){
+    html += `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="font-weight:700;margin-bottom:10px;font-size:14px">🏆 Productos más vistos</div>`;
+    const maxCount = sortedProds[0][1].count;
+    sortedProds.forEach(([id, v], idx)=>{
+      const prod = S.products.find(p=>p.id==id);
+      const name = prod ? prod.name : 'ID '+id;
+      const pct = Math.round(v.count/maxCount*100);
+      html += `<div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+          <span>${idx+1}. ${name}</span>
+          <span style="font-weight:700;color:var(--ac)">${v.count}</span>
+        </div>
+        <div style="height:4px;background:var(--bd);border-radius:99px">
+          <div style="height:4px;background:var(--ac);border-radius:99px;width:${pct}%;transition:width .3s"></div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  if(sortedCats.length){
+    html += `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="font-weight:700;margin-bottom:10px;font-size:14px">📂 Categorías más exploradas</div>`;
+    const maxCat = sortedCats[0][1];
+    sortedCats.forEach(([cat, count])=>{
+      const pct = Math.round(count/maxCat*100);
+      html += `<div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+          <span>${cat}</span><span style="font-weight:700;color:var(--ac)">${count}</span>
+        </div>
+        <div style="height:4px;background:var(--bd);border-radius:99px">
+          <div style="height:4px;background:var(--ac);border-radius:99px;width:${pct}%"></div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  if(sortedMesas.length > 1){
+    html += `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="font-weight:700;margin-bottom:10px;font-size:14px">🪑 Mesas más activas</div>`;
+    sortedMesas.forEach(([mesa, count])=>{
+      html += `<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--bd)">
+        <span>${mesa==='direct'?'Acceso directo':'Mesa '+mesa}</span>
+        <span style="font-weight:700;color:var(--ac)">${count} visitas</span>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  wrap.innerHTML = html;
+}
+
+function clearAnalytics(){
+  if(!confirm('¿Borrar todas las estadísticas?')) return;
+  localStorage.removeItem('menuos_analytics');
+  renderAnalytics();
+  toast('🗑 Estadísticas borradas');
+}
+
+// QR
+// ══════════════════════════════════════════════
+function genQR(){
+  const base = byId('qrUrl').value || 'menu.html';
+  const n = parseInt(byId('qrN').value) || 10;
+  const restName = (S.restaurant && S.restaurant.name) || 'Menú';
+  const g = byId('qrGrid');
+  g.innerHTML = '';
+  for(let i = 1; i <= n; i++){
+    const url = base + '?mesa=' + i;
+    const qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(url) + '&bgcolor=ffffff&color=000000&margin=10';
+    const d = document.createElement('div');
+    d.className = 'qri';
+    const img = document.createElement('img');
+    img.src = qrSrc;
+    img.loading = 'lazy';
+    img.style.cssText = 'width:90px;height:90px';
+    const label = document.createElement('div');
+    label.className = 'qrl';
+    label.textContent = 'Mesa ' + i;
+    const link = document.createElement('div');
+    link.className = 'qru';
+    link.style.marginBottom = '6px';
+    link.innerHTML = '<a href="' + url + '" target="_blank" style="color:var(--gd)">Abrir →</a>';
+    const btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:4px;width:100%';
+    const dlBtn = document.createElement('button');
+    dlBtn.className = 'btn btn-o btn-sm';
+    dlBtn.style.cssText = 'font-size:11px;padding:4px 8px;flex:1';
+    dlBtn.textContent = '⬇';
+    dlBtn.onclick = (function(s,n){ return function(){ downloadQR(s,n); }; })(qrSrc, 'Mesa_'+i);
+    const prBtn = document.createElement('button');
+    prBtn.className = 'btn btn-p btn-sm';
+    prBtn.style.cssText = 'font-size:11px;padding:4px 8px;flex:1';
+    prBtn.textContent = '🖨️';
+    prBtn.onclick = (function(s,m,r){ return function(){ printQR(s,m,r); }; })(qrSrc, i, restName);
+    btns.appendChild(dlBtn);
+    btns.appendChild(prBtn);
+    d.appendChild(img);
+    d.appendChild(label);
+    d.appendChild(link);
+    d.appendChild(btns);
+    g.appendChild(d);
+  }
+  toast('✅ ' + n + ' QR generados');
+}
+
+function printQR(src, mesa, restName){
+  const win = window.open('', '_blank', 'width=400,height=520');
+  if(!win){ toast('⚠️ Permitir popups para imprimir'); return; }
+  const html = '<!DOCTYPE html><html><head><title>QR Mesa ' + mesa + '</title>'
+    + '<style>@page{size:10cm 12cm;margin:0}*{margin:0;padding:0;box-sizing:border-box}'
+    + 'body{font-family:Georgia,serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#fff;padding:16px;text-align:center}'
+    + '.rn{font-size:15px;font-weight:700;color:#222;margin-bottom:8px;letter-spacing:.02em}'
+    + '.qi{width:180px;height:180px;border:3px solid #222;border-radius:8px;padding:4px}'
+    + '.ml{font-size:26px;font-weight:900;color:#222;margin-top:10px;letter-spacing:.05em}'
+    + '.st{font-size:11px;color:#666;margin-top:6px;letter-spacing:.05em}'
+    + '</style></head><body>'
+    + '<div class="rn">' + restName + '</div>'
+    + '<img class="qi" src="' + src + '" onload="window.print();window.close()">'
+    + '<div class="ml">MESA ' + mesa + '</div>'
+    + '<div class="st">Escaneá para ver el menú</div>'
+    + '</body></html>';
+  win.document.write(html);
+  win.document.close();
+}
+
+
+function downloadQR(src, name){
+  fetch(src)
+    .then(r=>r.blob())
+    .then(blob=>{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=name+'.png';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast('⬇ Descargando '+name);
+    })
+    .catch(()=>{
+      // Fallback: abrir en nueva pestaña
+      window.open(src,'_blank');
+    });
+}
+
+// ══════════════════════════════════════════════
+// SAVE / PREVIEW
+// ══════════════════════════════════════════════
+function saveAll(msg=true){
+  collectForms();
+  const json=JSON.stringify(S,null,2);
+  
+  // 1. Guardar en servidor (automático, actualiza menu-data.json)
+  fetch('/save',{method:'POST',headers:{'Content-Type':'application/json'},body:json})
+    .then(r=>r.json())
+    .then(data=>{ 
+      if(msg) toast('✅ Guardado automáticamente');
+      console.log('✅ Guardado en servidor:', data);
+    })
+    .catch(err=>{
+      console.warn('⚠️ Servidor no disponible, solo guardado local');
+      if(msg) toast('⚠️ Guardado solo en navegador (servidor offline)');
+    });
+  
+  // 2. Guardar en localStorage como backup
+  try{localStorage.setItem('menuos_v2',json);}catch(e){}
+}
+function exportJSON(showToast=true){
+  collectForms();
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='menu-data.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  if(showToast)toast('📄 menu-data.json descargado');
+}
+function previewMenu(){saveAll(false);window.open('menu.html?t='+Date.now(),'_blank')}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+function toast(msg){const t=byId('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
+
+// ══════════════════════════════════════════════
+// UPLOAD DE MEDIOS (IMÁGENES/VIDEOS)
+// ══════════════════════════════════════════════
+async function uploadMedia(file, type = 'product') {
+  return new Promise((resolve, reject) => {
+    const isVideo = file.type.startsWith('video/');
+    const reader = new FileReader();
+    
+    reader.onload = async (e) => {
+      try {
+        const response = await fetch('/upload-media', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            file: e.target.result,
+            type: type,
+            filename: file.name,
+            isVideo: isVideo
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          const sizeMB = (data.size / (1024 * 1024)).toFixed(2);
+          console.log(`✅ ${isVideo ? 'Video' : 'Imagen'} subida: ${data.path} (${sizeMB}MB)`);
+          if (!isVideo && data.savings) {
+            console.log(`   Optimización: ${data.savings} ahorro`);
+          }
+          resolve({
+            path: data.path,
+            isVideo: isVideo
+          });
+        } else {
+          reject(new Error(data.error || 'Error al subir archivo'));
+        }
+      } catch (err) {
+        reject(err);
+      }
+    };
+    
+    reader.onerror = () => reject(new Error('Error leyendo archivo'));
+    reader.readAsDataURL(file);
+  });
+}
+
+init();
+</script>
+<!-- Color Picker Popup -->
+<div class="cpopup" id="cpopup">
+  <div class="cp-field" onclick="cpFieldClick(event)" onmousemove="e=>{if(e.buttons)cpFieldClick(e)}">
+    <div class="cp-field-inner" id="cpFieldInner"></div>
+    <div class="cp-cursor" id="cpCursor"></div>
+  </div>
+  <div class="cp-hue" onclick="cpHueClick(event)" onmousemove="e=>{if(e.buttons)cpHueClick(e)}">
+    <div class="cp-hue-thumb" id="cpHueThumb"></div>
+  </div>
+  <div class="cp-hex">
+    <div class="cp-preview" id="cpPreview"></div>
+    <input class="cp-input" id="cpInput" type="text" maxlength="7" oninput="cpHexInput(this.value)">
+  </div>
+  <button class="cp-close" onclick="closeColorPicker()">✓ Aplicar</button>
+</div>
+</body>
+</html>
