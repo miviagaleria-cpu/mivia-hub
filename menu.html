@@ -4,6 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Menú</title>
+<!-- Firebase (CDN, compat) -->
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAe7Bg4jq6cmkka5v94cy8GZOkpNpb-6jQ",
+    authDomain: "mivia-hub.firebaseapp.com",
+    projectId: "mivia-hub",
+    storageBucket: "mivia-hub.firebasestorage.app",
+    messagingSenderId: "1035294518289",
+    appId: "1:1035294518289:web:7298492075ebd246c495b0"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const FIRESTORE_MENU_DOC = db.collection('menus').doc('principal');
+</script>
 <style>
 :root{
   --bg:#0d0905; --surface:#161008; --card:#1e1509;
@@ -704,13 +722,21 @@ function applyData(S){
 }
 
 function loadFromStorage(){
-  // Primero intenta leer menu-data.json (archivo local — funciona siempre)
-  fetch('menu-data.json?_='+Date.now())
-    .then(r=>{ if(!r.ok) throw new Error('no file'); return r.json(); })
-    .then(S=>{ applyData(S); renderCatBar(); renderMenu(); loadMesaCart(); })
-    .catch((err)=>{
-      console.error('Error cargando menu-data.json:', err);
-      alert('Error al cargar el menú. Verifica que menu-data.json existe.');
+  // Leer desde Firestore (menus/principal)
+  FIRESTORE_MENU_DOC.get()
+    .then(snap=>{
+      if(!snap.exists){
+        throw new Error('Documento menus/principal no encontrado en Firestore');
+      }
+      const S=snap.data();
+      applyData(S);
+      renderCatBar();
+      renderMenu();
+      loadMesaCart();
+    })
+    .catch(err=>{
+      console.error('Error cargando menú desde Firestore:',err);
+      alert('Error al cargar el menú desde la nube. Verifica la configuración de Firebase/Firestore.');
     });
 }
 

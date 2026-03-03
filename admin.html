@@ -5,6 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>MenuOS — Admin</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Firebase (CDN, compat) -->
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
+
+<script>
+  // Configuración Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyAe7Bg4jq6cmkka5v94cy8GZOkpNpb-6jQ",
+    authDomain: "mivia-hub.firebaseapp.com",
+    projectId: "mivia-hub",
+    storageBucket: "mivia-hub.firebasestorage.app",
+    messagingSenderId: "1035294518289",
+    appId: "1:1035294518289:web:7298492075ebd246c495b0"
+  };
+
+  // Inicializar app y Firestore
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const FIRESTORE_MENU_DOC = db.collection('menus').doc('principal');
+</script>
 <style>
 :root{--bg:#f0ebe2;--sf:#fff;--bd:#e2d9cc;--tx:#1a1510;--mu:#8a7d6c;--ac:#1a1510;--gd:#b8883a;--gb:#fef5e0;--gn:#2d6a4f;--gnb:#d8f3dc;--rd:#c62828;--rdb:#ffebee;--bl:#1565c0;--blb:#e3f2fd;--r:11px;--sh:0 2px 8px rgba(0,0,0,.07)}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -1067,14 +1087,29 @@ function finishInit(){
   renderDash();renderCatList();renderProds();updatePrev();setupUploads();
 }
 function init(){
-  fetch('menu-data.json?_='+Date.now())
-    .then(r=>{if(!r.ok)throw new Error('no file');return r.json();})
-    .then(p=>{applyLoaded(p);finishInit();setTimeout(()=>toast('✅ Datos cargados desde menu-data.json'),400);})
-    .catch(()=>{
-      const raw=localStorage.getItem('menuos_v2');
-      if(raw){try{applyLoaded(JSON.parse(raw));}catch(e){console.warn(e);}}
-      finishInit();
-    });
+  (async ()=>{
+    // 1. Intentar leer desde Firestore
+    try{
+      const snap=await FIRESTORE_MENU_DOC.get();
+      if(snap.exists){
+        applyLoaded(snap.data());
+        finishInit();
+        setTimeout(()=>toast('✅ Datos cargados desde Firestore'),400);
+        return;
+      }else{
+        console.warn('No existe documento menus/principal en Firestore, usando backup local si existe');
+      }
+    }catch(e){
+      console.warn('Error leyendo menú desde Firestore, usando backup local',e);
+    }
+
+    // 2. Fallback: localStorage (comportamiento anterior)
+    const raw=localStorage.getItem('menuos_v2');
+    if(raw){
+      try{applyLoaded(JSON.parse(raw));}catch(e){console.warn(e);}
+    }
+    finishInit();
+  })();
 }
 
 // ══════════════════════════════════════════════
@@ -2789,19 +2824,19 @@ function downloadQR(src, name){
 function saveAll(msg=true){
   collectForms();
   const json=JSON.stringify(S,null,2);
-  
-  // 1. Guardar en servidor (automático, actualiza menu-data.json)
-  fetch('/save',{method:'POST',headers:{'Content-Type':'application/json'},body:json})
-    .then(r=>r.json())
-    .then(data=>{ 
-      if(msg) toast('✅ Guardado automáticamente');
-      console.log('✅ Guardado en servidor:', data);
+  const data=S;
+
+  // 1. Guardar en Firestore (menus/principal)
+  FIRESTORE_MENU_DOC.set(data)
+    .then(()=>{
+      if(msg) toast('✅ Guardado en la nube (Firestore)');
+      console.log('✅ Guardado en Firestore');
     })
     .catch(err=>{
-      console.warn('⚠️ Servidor no disponible, solo guardado local');
-      if(msg) toast('⚠️ Guardado solo en navegador (servidor offline)');
+      console.warn('⚠️ Error guardando en Firestore:',err);
+      if(msg) toast('⚠️ Error al guardar en la nube, solo copia local');
     });
-  
+
   // 2. Guardar en localStorage como backup
   try{localStorage.setItem('menuos_v2',json);}catch(e){}
 }
