@@ -2304,39 +2304,16 @@ function extractJsonFromText(text){
 }
 
 function anthropicExtractMenu(base64DataUrl){
-  const apiKey = typeof ANTHROPIC_API_KEY === 'string' ? ANTHROPIC_API_KEY.trim() : '';
-  if(!apiKey){
-    setImpSt('err','❌ Configurá ANTHROPIC_API_KEY en el script para usar importación por foto.');
-    return Promise.resolve(null);
-  }
   const m = base64DataUrl.match(/^data:([^;]+);base64,(.+)$/);
   const mediaType = m ? m[1] : 'image/jpeg';
   const base64 = m ? m[2] : base64DataUrl;
 
-  const systemPrompt = 'Eres un asistente que extrae información de cartas de restaurantes. Analiza la imagen y devuelve SOLO un JSON válido con este formato exacto, sin texto adicional:\n{"categorias":[{"nombre":"Nombre categoría","productos":[{"nombre":"Nombre producto","descripcion":"descripción corta o vacío","precio":000}]}]}\nSi no podés leer un precio, usá 0. Si no hay categorías claras, agregalos todos bajo "General".';
-
-  const body = {
-    model: 'claude-opus-4-5-20251101',
-    max_tokens: 2000,
-    system: systemPrompt,
-    messages: [{
-      role: 'user',
-      content: [
-        { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
-        { type: 'text', text: 'Extraé el menú de esta imagen y devolvé el JSON.' }
-      ]
-    }]
-  };
-
   setImpSt('load','⏳ Analizando imagen con IA...');
-  return fetch('https://api.anthropic.com/v1/messages', {
+
+  return fetch('/.netlify/functions/analyze-menu', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01'
-    },
-    body: JSON.stringify(body)
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: base64, mediaType: mediaType })
   })
     .then(r => {
       if(!r.ok) return r.text().then(t => { throw new Error(t || r.status); });
@@ -2345,37 +2322,32 @@ function anthropicExtractMenu(base64DataUrl){
     .then(data => {
       const text = data.content && data.content[0] && data.content[0].text ? data.content[0].text : '';
       const json = extractJsonFromText(text);
-      if(!json || !json.categorias || !Array.isArray(json.categorias)){
-        setImpSt('err','❌ No se pudo extraer un menú válido de la respuesta.');
+      if(!json || !json.categorias){
+        setImpSt('err','❌ No se pudo extraer un menú válido.');
         return null;
       }
       const products = [];
       let idBase = Date.now();
       json.categorias.forEach((cat, ci) => {
-        const catName = cat.nombre || cat.nombre_categoria || 'General';
+        const catName = cat.nombre || 'General';
         (cat.productos || []).forEach((prod, pi) => {
           products.push({
             id: idBase + ci * 100 + pi,
             cat: catName,
-            name: prod.nombre || prod.name || 'Sin nombre',
-            desc: prod.descripcion || prod.desc || '',
-            descLong: prod.descripcion_larga || prod.descLong || prod.descripcion || '',
-            price: typeof prod.precio === 'number' ? prod.precio : (parseFloat(prod.precio) || 0),
-            badge: null,
-            tags: [],
-            video: null,
-            img: null,
-            available: true,
-            order: products.length
+            name: prod.nombre || 'Sin nombre',
+            desc: prod.descripcion || '',
+            descLong: prod.descripcion || '',
+            price: parseFloat(prod.precio) || 0,
+            badge: null, tags: [], video: null, img: null,
+            available: true, order: products.length
           });
         });
       });
-      setImpSt('ok','✅ <b>'+products.length+' productos</b> detectados. Revisá y confirmá en el modal.');
+      setImpSt('ok','✅ <b>'+products.length+' productos</b> detectados.');
       return products;
     })
     .catch(err => {
-      console.error(err);
-      setImpSt('err','❌ Error al llamar a la API: ' + (err.message || 'revisá tu API key y conexión.'));
+      setImpSt('err','❌ Error: ' + (err.message || 'revisá tu conexión.'));
       return null;
     });
 }
